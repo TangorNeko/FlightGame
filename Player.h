@@ -14,7 +14,10 @@ public:
 	float fSpeed = 0;
 	float movex = 0, movez = 0;
 	float x=0, y=0, z=0;
-	CQuaternion qRotX, qRotY, qRotZ;
+	CQuaternion qRotX, qRotY, qRotZ,qRotCam;
 	CQuaternion m_rotation;
+
+	CVector3 cameraup;
+	CQuaternion camerarot;
 };
 

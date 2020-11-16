@@ -11,7 +11,14 @@ GameScene::GameScene()
 
 GameScene::~GameScene()
 {
+	GameCamera* gamecamera = FindGO<GameCamera>("gamecamera");
+	DeleteGO(gamecamera);
 
+	Player* player = FindGO<Player>("player");
+	DeleteGO(player);
+
+	BackGround* background = FindGO<BackGround>("background");
+	DeleteGO(background);
 }
 
 bool GameScene::Start()
@@ -27,5 +34,9 @@ bool GameScene::Start()
 
 void GameScene::Update()
 {
-
+	if (Pad(0).IsTrigger(enButtonA))
+	{
+		NewGO<GameScene>(0, "gamescene");
+		DeleteGO(this);
+	}
 }

@@ -8,7 +8,7 @@ Player::Player()
 
 Player::~Player()
 {
-
+	DeleteGO(Vmodel);
 }
 
 bool Player::Start()
@@ -16,6 +16,9 @@ bool Player::Start()
 	Vmodel = NewGO<prefab::CSkinModelRender>(0);
 	Vmodel->Init(L"modelData/Vehicle.cmo");
 	Vmodel->SetScale({ 0.1f,0.1f,0.1f });
+
+	qRotCam.SetRotationDeg(CVector3::AxisX, -90);
+	camerarot.Multiply(qRotCam, camerarot);
 
 	return true;
 }
@@ -75,9 +78,18 @@ void Player::Update()
 	MoveDir.y = mRot.m[2][1];
 	MoveDir.z = mRot.m[2][2];
 
-	//qRotX.Apply(MoveDir);
+	//position += MoveDir * 100;
 
-	position += MoveDir * 100;
+	camerarot.Multiply(qRotX, camerarot);
+	camerarot.Multiply(qRotZ, camerarot);
+
+	auto cRot = CMatrix::Identity;
+	cRot.MakeRotationFromQuaternion(camerarot);
+	cameraup.x = cRot.m[2][0];
+	cameraup.y = cRot.m[2][1];
+	cameraup.z = cRot.m[2][2];
+
+	position += cameraup * 10;
 
 	Vmodel->SetRotation(m_rotation);
 	Vmodel->SetPosition(position);

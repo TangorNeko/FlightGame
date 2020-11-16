@@ -8,7 +8,7 @@ BackGround::BackGround()
 
 BackGround::~BackGround()
 {
-
+	DeleteGO(BGmodel);
 }
 
 bool BackGround::Start()
