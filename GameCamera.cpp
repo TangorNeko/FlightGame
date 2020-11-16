@@ -30,7 +30,7 @@ void GameCamera::Update()
 	MainCamera().SetTarget(target);
 
 	MainCamera().SetNear(10.0f);
-	MainCamera().SetFar(10000.0f);
+	MainCamera().SetFar(100000.0f);
 
 	MainCamera().Update();
 }

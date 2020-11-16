@@ -77,7 +77,7 @@ void Player::Update()
 
 	//qRotX.Apply(MoveDir);
 
-	position += MoveDir * 10;
+	position += MoveDir * 100;
 
 	Vmodel->SetRotation(m_rotation);
 	Vmodel->SetPosition(position);
