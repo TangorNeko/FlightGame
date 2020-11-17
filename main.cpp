@@ -133,6 +133,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	
 #endif
 
+	SetTkEngineConfigForMiddleSpec(initParam);
+
 	//ƒGƒ“ƒWƒ“‚ğ‰Šú‰»B
 	if (Engine().Init(initParam) == true) {
 		NewGO<GameScene>(0, "gamescene");

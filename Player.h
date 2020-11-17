@@ -19,5 +19,7 @@ public:
 
 	CVector3 cameraup;
 	CQuaternion camerarot;
+
+	bool a = false;
 };
 

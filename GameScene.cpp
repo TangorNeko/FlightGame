@@ -23,6 +23,7 @@ GameScene::~GameScene()
 
 bool GameScene::Start()
 {
+	dbg::SetDrawVectorEnable();
 	NewGO<GameCamera>(0, "gamecamera");
 
 	NewGO<Player>(0, "player");
