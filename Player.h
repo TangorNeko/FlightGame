@@ -3,8 +3,7 @@
 class Player : public IGameObject
 {
 public:
-	Player();
-	~Player();
+	void OnDestroy();
 	bool Start();
 	void Update();
 
@@ -17,7 +16,7 @@ public:
 	CQuaternion qRotX, qRotY, qRotZ,qRotCam;
 	CQuaternion m_rotation;
 
-	CVector3 cameraup;
+	CVector3 cameraup = CVector3::Up;
 	CQuaternion camerarot;
 
 	bool a = false;

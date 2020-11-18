@@ -3,13 +3,9 @@
 #include "GameCamera.h"
 #include "Player.h"
 #include "BackGround.h"
+#include "Enemy.h"
 
-GameScene::GameScene()
-{
-
-}
-
-GameScene::~GameScene()
+void GameScene::OnDestroy()
 {
 	GameCamera* gamecamera = FindGO<GameCamera>("gamecamera");
 	DeleteGO(gamecamera);
@@ -29,6 +25,25 @@ bool GameScene::Start()
 	NewGO<Player>(0, "player");
 
 	NewGO<BackGround>(0, "background");
+
+
+	Enemy* enemy = nullptr;
+	enemy = NewGO<Enemy>(0, "enemy");
+	enemy->position = { 5000,1000,2000 };
+	enemy = NewGO<Enemy>(0, "enemy");
+	enemy->position = { 2000,1000,5000 };
+	enemy = NewGO<Enemy>(0, "enemy");
+	enemy->position = { 10000,1000,1000 };
+	enemy = NewGO<Enemy>(0, "enemy");
+	enemy->position = { 1000,1000,10000 };
+	enemy = NewGO<Enemy>(0, "enemy");
+	enemy->position = { 3000,1000,7500 };
+	enemy = NewGO<Enemy>(0, "enemy");
+	enemy->position = { 7500,1000,3000 };
+	enemy = NewGO<Enemy>(0, "enemy");
+	enemy->position = { 4000,1000,3000 };
+	enemy = NewGO<Enemy>(0, "enemy");
+	enemy->position = { 3000,1000,4000 };
 
 	return true;
 }

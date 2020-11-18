@@ -2,8 +2,7 @@
 class BackGround : public IGameObject
 {
 public:
-	BackGround();
-	~BackGround();
+	void OnDestroy();
 	bool Start();
 	void Update();
 

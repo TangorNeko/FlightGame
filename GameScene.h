@@ -2,8 +2,7 @@
 class GameScene : public IGameObject
 {
 public:
-	GameScene();
-	~GameScene();
+	void OnDestroy();
 	bool Start();
 	void Update();
 };

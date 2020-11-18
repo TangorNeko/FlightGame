@@ -4,8 +4,7 @@
 class GameCamera : public IGameObject
 {
 public:
-	GameCamera();
-	~GameCamera();
+	void OnDestroy();
 	bool Start();
 	void Update();
 

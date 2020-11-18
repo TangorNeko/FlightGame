@@ -110,6 +110,42 @@ namespace {
 		//dof
 		initParam.graphicsConfing.dofConfig.isEnable = true;
 	}
+	/*!
+	*@brief	tkEngineのConfigを自由に設定する。
+	*@param[out]	initParam	tkEngineの初期化パラメータ
+	*/
+	void SetTkEngineConfigCustom(SInitParam& initParam)
+	{
+		initParam.screenWidth = 1280;
+		initParam.screenHeight = 720;
+		initParam.frameBufferWidth = 1280;
+		initParam.frameBufferHeight = 720;
+
+		//影の設定。
+		initParam.graphicsConfing.shadowRenderConfig.isEnable = true;
+		initParam.graphicsConfing.shadowRenderConfig.shadowMapWidth = 1024;
+		initParam.graphicsConfing.shadowRenderConfig.shadowMapHeight = 1024;
+		initParam.graphicsConfing.shadowRenderConfig.lightHeight = UnitM(20.0f);
+		initParam.graphicsConfing.shadowRenderConfig.depthOffset[0] = 0.001f;
+		initParam.graphicsConfing.shadowRenderConfig.depthOffset[1] = 0.001f;
+		initParam.graphicsConfing.shadowRenderConfig.depthOffset[2] = 0.002f;
+		initParam.graphicsConfing.shadowRenderConfig.softShadowLevel = EnSoftShadowQualityLevel::eSSSS_PCF;
+
+		//アンチ
+		initParam.graphicsConfing.aaConfig.isEnable = false;
+		//Bloom
+		initParam.graphicsConfing.bloomConfig.isEnable = true;
+		//tonemap
+		initParam.graphicsConfing.tonemapConfig.isEnable = true;
+		initParam.graphicsConfing.tonemapConfig.luminance = 0.56f;
+
+		//SSR
+		initParam.graphicsConfing.ssrConfig.isEnable = true;
+		//ディザ
+		initParam.graphicsConfing.ditheringConfig.isEnable = false;
+		//dof
+		initParam.graphicsConfing.dofConfig.isEnable = false;
+	}
 }
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
@@ -133,7 +169,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	
 #endif
 
-	SetTkEngineConfigForMiddleSpec(initParam);
+	SetTkEngineConfigCustom(initParam);
 
 	//エンジンを初期化。
 	if (Engine().Init(initParam) == true) {
