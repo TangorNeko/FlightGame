@@ -7,19 +7,26 @@
 
 void GameScene::OnDestroy()
 {
-	GameCamera* gamecamera = FindGO<GameCamera>("gamecamera");
-	DeleteGO(gamecamera);
+	QueryGOs<Enemy>("enemy", [](Enemy* enemy)->bool {
+		DeleteGO(enemy);
+		return true;
+		});
+
+	BackGround* background = FindGO<BackGround>("background");
+	DeleteGO(background);
 
 	Player* player = FindGO<Player>("player");
 	DeleteGO(player);
 
-	BackGround* background = FindGO<BackGround>("background");
-	DeleteGO(background);
+	GameCamera* gamecamera = FindGO<GameCamera>("gamecamera");
+	DeleteGO(gamecamera);
 }
 
 bool GameScene::Start()
 {
+	//ベクトルを可視化する
 	dbg::SetDrawVectorEnable();
+
 	NewGO<GameCamera>(0, "gamecamera");
 
 	NewGO<Player>(0, "player");
@@ -27,6 +34,7 @@ bool GameScene::Start()
 	NewGO<BackGround>(0, "background");
 
 
+	//敵をいっぱい作る(後から自動化したい)
 	Enemy* enemy = nullptr;
 	enemy = NewGO<Enemy>(0, "enemy");
 	enemy->position = { 5000,1000,2000 };
@@ -50,9 +58,13 @@ bool GameScene::Start()
 
 void GameScene::Update()
 {
+
+	//Aボタンでリセット
 	if (Pad(0).IsTrigger(enButtonA))
 	{
 		NewGO<GameScene>(0, "gamescene");
 		DeleteGO(this);
 	}
+
+	//ポーズ機能とかつけたい
 }

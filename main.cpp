@@ -169,6 +169,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	
 #endif
 
+	//勝手に数値変えて作ってますごめんなさい。
 	SetTkEngineConfigCustom(initParam);
 
 	//エンジンを初期化。

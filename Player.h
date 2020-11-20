@@ -6,6 +6,7 @@ public:
 	void OnDestroy();
 	bool Start();
 	void Update();
+	void Lockon();
 
 	prefab::CSkinModelRender* Vmodel = nullptr;
 	CVector3 position;
@@ -18,6 +19,7 @@ public:
 
 	CVector3 cameraup = CVector3::Up;
 	CQuaternion camerarot;
+	prefab::CSpriteRender* lock = nullptr;
 
 	bool a = false;
 };
