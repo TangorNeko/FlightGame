@@ -9,7 +9,7 @@ public:
 	void Update();
 
 	Player* player = nullptr;
-	CVector3 position;
-	CVector3 target;
+	CVector3 m_position;
+	CVector3 m_target;
 };
 

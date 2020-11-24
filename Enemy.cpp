@@ -3,18 +3,18 @@
 
 void Enemy::OnDestroy()
 {
-	DeleteGO(tModel);
+	DeleteGO(m_skinModelRender);
 }
 
 bool Enemy::Start()
 {
-	tModel = NewGO<prefab::CSkinModelRender>(0);
-	tModel->Init(L"modelData/target.cmo");
-	tModel->SetScale({ 100.0f,100.0f,100.0f });
+	m_skinModelRender = NewGO<prefab::CSkinModelRender>(0);
+	m_skinModelRender->Init(L"modelData/target.cmo");
+	m_skinModelRender->SetScale({ 100.0f,100.0f,100.0f });
 	return true;
 }
 
 void Enemy::Update()
 {
-	tModel->SetPosition(position);
+	m_skinModelRender->SetPosition(m_position);
 }

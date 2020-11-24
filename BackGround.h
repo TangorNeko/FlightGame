@@ -6,6 +6,6 @@ public:
 	bool Start();
 	void Update();
 
-	prefab::CSkinModelRender* BGmodel = nullptr;
+	prefab::CSkinModelRender* m_skinModelRender = nullptr;
 };
 

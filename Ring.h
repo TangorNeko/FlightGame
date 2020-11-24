@@ -1,5 +1,7 @@
 #pragma once
-class Enemy : public IGameObject
+class Player;
+
+class Ring : public IGameObject
 {
 public:
 	void OnDestroy();
@@ -7,6 +9,8 @@ public:
 	void Update();
 
 	prefab::CSkinModelRender* m_skinModelRender = nullptr;
+	Player* player = nullptr;
+
 	CVector3 m_position;
 };
 

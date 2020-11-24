@@ -3,15 +3,15 @@
 
 void BackGround::OnDestroy()
 {
-	DeleteGO(BGmodel);
+	DeleteGO(m_skinModelRender);
 }
 
 bool BackGround::Start()
 {
-	BGmodel = NewGO<prefab::CSkinModelRender>(0);
-	BGmodel->Init(L"modelData/background.cmo");
-	BGmodel->SetPosition({ 0.0f,-300.0f,0.0f });
-	BGmodel->SetScale({ 5.0f,5.0f,5.0f });
+	m_skinModelRender = NewGO<prefab::CSkinModelRender>(0);
+	m_skinModelRender->Init(L"modelData/background.cmo");
+	m_skinModelRender->SetPosition({ 0.0f,-300.0f,0.0f });
+	m_skinModelRender->SetScale({ 5.0f,5.0f,5.0f });
 	return true;
 }
 
