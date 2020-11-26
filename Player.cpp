@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Player.h"
 #include "Enemy.h"
+#include "Missile.h"
 
 void Player::OnDestroy()
 {
@@ -29,6 +30,11 @@ void Player::Update()
 
 	//そのフレームごとの移動量を使うので毎フレーム0にする
 	m_x = m_y = m_z = 0;
+
+	if (Pad(0).IsPress(enButtonLB3))
+	{
+		m_fSpeed *= 10;
+	}
 
 	//入力に応じて角度を変える
 	if (Pad(0).IsPress(enButtonDown))
@@ -72,6 +78,12 @@ void Player::Update()
 	//ロックオン用の関数
 	Lockon();
 
+	//ミサイル発射用の関数
+	if (Pad(0).IsTrigger(enButtonB) && m_lockingEnemy != nullptr)
+	{
+		ShootMissile();
+	}
+
 	m_skinModelRender->SetRotation(m_rotation);
 	m_skinModelRender->SetPosition(m_position);
 }
@@ -87,16 +99,18 @@ void Player::Lockon()
 
 
 	//最高ロックオン可能距離より敵の位置までの距離が短いかつロックオン可能な角度内ならロックオン距離を更新する処理を繰り返す
-	QueryGOs<Enemy>("enemy", [&Lockonpos,lockondegree,this](Enemy* enemy)->bool {
-		CVector3 tmp1 = enemy->m_position - this->m_position,
-			tmp2 = Lockonpos - this->m_position;
-		if (tmp1.Length() < tmp2.Length())
+	QueryGOs<Enemy>("enemy", [&Lockonpos,lockondegree,this](Enemy* enemy)->bool 
 		{
-			tmp1.Normalize();
-			if(this->m_moveDir.Dot(tmp1) > cos(lockondegree * CMath::PI / 180))
-			Lockonpos = enemy->m_position;
-		}
-		return true;
+			CVector3 tmp1 = enemy->m_position - this->m_position,
+				tmp2 = Lockonpos - this->m_position;
+			if (tmp1.Length() < tmp2.Length())
+			{
+				tmp1.Normalize();
+				if(this->m_moveDir.Dot(tmp1) > cos(lockondegree * CMath::PI / 180))
+				Lockonpos = enemy->m_position;
+				m_lockingEnemy = enemy;
+			}
+			return true;
 		}
 	);
 
@@ -118,5 +132,12 @@ void Player::Lockon()
 	else
 	{
 		m_spriteRender->SetPosition({ 0.0f,150.0f,0.0f });
+		m_lockingEnemy = nullptr;
 	}
+}
+
+void Player::ShootMissile()
+{
+	Missile* missile = NewGO<Missile>(0, "missile");
+	missile->m_position = m_position;
 }

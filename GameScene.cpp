@@ -5,9 +5,18 @@
 #include "BackGround.h"
 #include "Enemy.h"
 #include "Ring.h"
+#include "Blackhole.h"
 
 void GameScene::OnDestroy()
 {
+	Blackhole* blackhole = FindGO<Blackhole>("blackhole");
+	DeleteGO(blackhole);
+
+	QueryGOs<Ring>("ring", [](Ring* ring)->bool {
+		DeleteGO(ring);
+		return true;
+		});
+
 	QueryGOs<Enemy>("enemy", [](Enemy* enemy)->bool {
 		DeleteGO(enemy);
 		return true;
@@ -56,6 +65,11 @@ bool GameScene::Start()
 
 	Ring* ring = nullptr;
 	ring = NewGO<Ring>(0, "ring");
+	ring = NewGO<Ring>(0, "ring");
+	ring->m_position = { 500.0f,0.0f,5000.0f };
+
+	Blackhole* blackhole = NewGO<Blackhole>(0, "blackhole");
+	blackhole->m_position = { 1000.0f,200.0f,500.0f };
 
 	return true;
 }

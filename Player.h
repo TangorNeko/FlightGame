@@ -1,4 +1,5 @@
 #pragma once
+class Enemy;
 
 class Player : public IGameObject
 {
@@ -7,6 +8,7 @@ public:
 	bool Start();
 	void Update();
 	void Lockon();
+	void ShootMissile();
 
 	prefab::CSkinModelRender* m_skinModelRender = nullptr;
 	CVector3 m_position;
@@ -20,7 +22,6 @@ public:
 	CVector3 m_cameraup = CVector3::Up;
 	CQuaternion m_camerarot;
 	prefab::CSpriteRender* m_spriteRender = nullptr;
-
-	bool test = false;
+	Enemy* m_lockingEnemy = nullptr;
 };
 
