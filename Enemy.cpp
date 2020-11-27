@@ -16,5 +16,22 @@ bool Enemy::Start()
 
 void Enemy::Update()
 {
+	/*
+	count++;
+	if (count < 100)
+	{
+		m_position.x += 100;
+		m_position.y += 20;
+		m_position.z += 50;
+	}
+	else if (count < 200)
+	{
+		m_position.x -= 100;
+		m_position.y -= 20;
+		m_position.z -= 50;
+	}
+	else
+		count = 0;
+		*/
 	m_skinModelRender->SetPosition(m_position);
 }

@@ -8,5 +8,8 @@ public:
 
 	prefab::CSkinModelRender* m_skinModelRender = nullptr;
 	CVector3 m_position;
+	bool m_isMortal = false;
+
+	int count = 0;
 };
 

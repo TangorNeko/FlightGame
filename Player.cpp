@@ -7,6 +7,7 @@ void Player::OnDestroy()
 {
 	DeleteGO(m_skinModelRender);
 	DeleteGO(m_spriteRender);
+	DeleteGO(m_fontRender);
 }
 
 bool Player::Start()
@@ -19,6 +20,9 @@ bool Player::Start()
 	//ロックオンマーカーのスプライトを作成
 	m_spriteRender = NewGO<prefab::CSpriteRender>(0);
 	m_spriteRender->Init(L"sprite/lock.dds", 128, 128);
+
+	m_fontRender = NewGO<prefab::CFontRender>(0);
+	m_fontRender->SetPosition({ -650.0f,250.0f });
 
 	return true;
 }
@@ -34,6 +38,10 @@ void Player::Update()
 	if (Pad(0).IsPress(enButtonLB3))
 	{
 		m_fSpeed *= 10;
+	}
+	if (Pad(0).IsPress(enButtonLB2))
+	{
+		m_fSpeed /= 10;
 	}
 
 	//入力に応じて角度を変える
@@ -79,10 +87,18 @@ void Player::Update()
 	Lockon();
 
 	//ミサイル発射用の関数
-	if (Pad(0).IsTrigger(enButtonB) && m_lockingEnemy != nullptr)
+	if (Pad(0).IsTrigger(enButtonB) && m_lockingEnemy != nullptr && m_lockingEnemy->m_isMortal == false &&m_shotcooldown <= 60)
 	{
 		ShootMissile();
+		m_shotcooldown += 60;
 	}
+	m_shotcooldown--;
+	if (m_shotcooldown < 0)
+		m_shotcooldown = 0;
+
+	
+	std::wstring a = L"(仮)装弾数 = " + std::to_wstring((120 - m_shotcooldown) / 60);
+	m_fontRender->SetText(a.c_str());
 
 	m_skinModelRender->SetRotation(m_rotation);
 	m_skinModelRender->SetPosition(m_position);
@@ -91,7 +107,7 @@ void Player::Update()
 void Player::Lockon()
 {
 	//最高ロックオン可能距離を設定する
-	CVector3 Lockonpos = m_moveDir * 100000.0f;
+	CVector3 Lockonpos = m_position + m_moveDir * m_maxLockonDistance;
 
 	
 	//ロックオン可能な角度を設定
@@ -101,21 +117,25 @@ void Player::Lockon()
 	//最高ロックオン可能距離より敵の位置までの距離が短いかつロックオン可能な角度内ならロックオン距離を更新する処理を繰り返す
 	QueryGOs<Enemy>("enemy", [&Lockonpos,lockondegree,this](Enemy* enemy)->bool 
 		{
+			//敵から自機への距離
 			CVector3 tmp1 = enemy->m_position - this->m_position,
-				tmp2 = Lockonpos - this->m_position;
+			//現在の最短距離から自機への距離
+			tmp2 = Lockonpos - this->m_position;
 			if (tmp1.Length() < tmp2.Length())
 			{
 				tmp1.Normalize();
-				if(this->m_moveDir.Dot(tmp1) > cos(lockondegree * CMath::PI / 180))
-				Lockonpos = enemy->m_position;
-				m_lockingEnemy = enemy;
+				if (this->m_moveDir.Dot(tmp1) > cos(lockondegree * CMath::PI / 180) && enemy->m_isMortal == false)
+				{
+					Lockonpos = enemy->m_position;
+					m_lockingEnemy = enemy;
+				}
 			}
 			return true;
 		}
 	);
 
 	//0ならどの敵もロックオンできていない。
-	CVector3 Check = Lockonpos - m_moveDir * 100000.0f;
+	CVector3 Check = Lockonpos - (m_position + m_moveDir * m_maxLockonDistance);
 	
 	//ロックオンした敵のワールド座標からスクリーン座標に変換したものを受け取る用
 	CVector2 spritepos;
@@ -123,14 +143,14 @@ void Player::Lockon()
 	//ロックオンできているなら敵の位置にロックオンマーカーを表示する
 	if (Check.Length())
 	{
-		dbg::DrawVector(Lockonpos, { 0.0f,0.0f,0.0f }, "locking");
+		dbg::DrawVector(Lockonpos - m_position, m_position, "locking");
 		MainCamera().CalcScreenPositionFromWorldPosition(spritepos, Lockonpos);
 		CVector3 screenpos = { spritepos.x,spritepos.y,0.0f };
 		m_spriteRender->SetPosition(screenpos);
 	}
 	//できていないならプレイヤーのやや上に表示
 	else
-	{
+	{	
 		m_spriteRender->SetPosition({ 0.0f,150.0f,0.0f });
 		m_lockingEnemy = nullptr;
 	}
@@ -140,4 +160,6 @@ void Player::ShootMissile()
 {
 	Missile* missile = NewGO<Missile>(0, "missile");
 	missile->m_position = m_position;
+	missile->m_trackingEnemy = m_lockingEnemy;
+	m_lockingEnemy->m_isMortal = true;
 }

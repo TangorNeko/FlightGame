@@ -6,9 +6,15 @@
 #include "Enemy.h"
 #include "Ring.h"
 #include "Blackhole.h"
+#include "Missile.h"
 
 void GameScene::OnDestroy()
 {
+	QueryGOs<Missile>("missile", [](Missile* missile)->bool {
+		DeleteGO(missile);
+		return true;
+		});
+
 	Blackhole* blackhole = FindGO<Blackhole>("blackhole");
 	DeleteGO(blackhole);
 
@@ -57,7 +63,7 @@ bool GameScene::Start()
 	enemy = NewGO<Enemy>(0, "enemy");
 	enemy->m_position = { 3000,1000,7500 };
 	enemy = NewGO<Enemy>(0, "enemy");
-	enemy->m_position = { 7500,1000,3000 };
+	enemy->m_position = { -7500,1000,3000 };
 	enemy = NewGO<Enemy>(0, "enemy");
 	enemy->m_position = { 4000,1000,3000 };
 	enemy = NewGO<Enemy>(0, "enemy");
