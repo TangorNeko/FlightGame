@@ -1,15 +1,14 @@
 #pragma once
-class Blackhole;
 class Player;
 
-class GameScene : public IGameObject
+class Space : public IGameObject
 {
 public:
 	void OnDestroy();
 	bool Start();
 	void Update();
 
-	Blackhole* blackhole = nullptr;
+	prefab::CSky* space = nullptr;
 	Player* player = nullptr;
 };
 

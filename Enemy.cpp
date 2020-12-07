@@ -16,7 +16,7 @@ bool Enemy::Start()
 
 void Enemy::Update()
 {
-	/*
+	
 	count++;
 	if (count < 100)
 	{
@@ -32,6 +32,6 @@ void Enemy::Update()
 	}
 	else
 		count = 0;
-		*/
+		
 	m_skinModelRender->SetPosition(m_position);
 }

@@ -23,9 +23,11 @@ public:
 	CQuaternion m_camerarot;
 	prefab::CSpriteRender* m_spriteRender = nullptr;
 	Enemy* m_lockingEnemy = nullptr;
-	float m_maxLockonDistance = 10000.0f;
+	float m_maxLockonDistance = 25000.0f;
 	int m_shotcooldown = 0;
 
+	int m_fuel = 0;
+	int m_score = 0;
 	prefab::CFontRender* m_fontRender = nullptr;
 };
 

@@ -22,7 +22,8 @@ bool Player::Start()
 	m_spriteRender->Init(L"sprite/lock.dds", 128, 128);
 
 	m_fontRender = NewGO<prefab::CFontRender>(0);
-	m_fontRender->SetPosition({ -650.0f,250.0f });
+	m_fontRender->SetScale(0.5f);
+	m_fontRender->SetPosition({ -600.0f,250.0f });
 
 	return true;
 }
@@ -30,26 +31,26 @@ bool Player::Start()
 void Player::Update()
 {
 	//スピード
-	m_fSpeed = 10;
+	m_fSpeed = 50;
 
-	//そのフレームごとの移動量を使うので毎フレーム0にする
-	m_x = m_y = m_z = 0;
+	
 
-	if (Pad(0).IsPress(enButtonLB3))
+	if (Pad(0).IsPress(enButtonLB3) && m_fuel > 0)
 	{
-		m_fSpeed *= 10;
+		m_fSpeed *= 2;
+		m_fuel--;
 	}
 	if (Pad(0).IsPress(enButtonLB2))
 	{
-		m_fSpeed /= 10;
+		m_fSpeed /= 100;
 	}
 
 	//入力に応じて角度を変える
 	if (Pad(0).IsPress(enButtonDown))
-		m_x--;
+		m_x -= 1.5;
 
 	if (Pad(0).IsPress(enButtonUp))
-		m_x++;
+		m_x += 1.5;
 
 	/*
 	if (Pad(0).IsPress(enButtonA))
@@ -60,10 +61,10 @@ void Player::Update()
 	*/
 
 	if (Pad(0).IsPress(enButtonRight))
-		m_z--;
+		m_z -= 1.5;
 
 	if (Pad(0).IsPress(enButtonLeft))
-		m_z++;
+		m_z += 1.5;
 
 
 	//入力された角度をモデルに反映する
@@ -97,11 +98,14 @@ void Player::Update()
 		m_shotcooldown = 0;
 
 	
-	std::wstring a = L"(仮)装弾数 = " + std::to_wstring((120 - m_shotcooldown) / 60);
+	std::wstring a = L"(仮)装弾数 = " + std::to_wstring((120 - m_shotcooldown) / 60) + L"\n(仮)燃料 = " + std::to_wstring(m_fuel) + L"\n(仮)スコア = " + std::to_wstring(m_score);
 	m_fontRender->SetText(a.c_str());
 
 	m_skinModelRender->SetRotation(m_rotation);
 	m_skinModelRender->SetPosition(m_position);
+
+	//そのフレームごとの移動量を使うので毎フレーム0にする
+	m_x = m_y = m_z = 0;
 }
 
 void Player::Lockon()
@@ -109,10 +113,8 @@ void Player::Lockon()
 	//最高ロックオン可能距離を設定する
 	CVector3 Lockonpos = m_position + m_moveDir * m_maxLockonDistance;
 
-	
 	//ロックオン可能な角度を設定
 	const int lockondegree = 20;
-
 
 	//最高ロックオン可能距離より敵の位置までの距離が短いかつロックオン可能な角度内ならロックオン距離を更新する処理を繰り返す
 	QueryGOs<Enemy>("enemy", [&Lockonpos,lockondegree,this](Enemy* enemy)->bool 
@@ -159,7 +161,9 @@ void Player::Lockon()
 void Player::ShootMissile()
 {
 	Missile* missile = NewGO<Missile>(0, "missile");
-	missile->m_position = m_position;
+	missile->m_position = m_position + m_moveDir * 100;
+	//ミサイルに追尾先の敵を教える
 	missile->m_trackingEnemy = m_lockingEnemy;
+	//撃った瞬間相手に死にゆく定めを付与する
 	m_lockingEnemy->m_isMortal = true;
 }

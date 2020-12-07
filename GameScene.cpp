@@ -7,6 +7,7 @@
 #include "Ring.h"
 #include "Blackhole.h"
 #include "Missile.h"
+#include "Space.h"
 
 void GameScene::OnDestroy()
 {
@@ -15,8 +16,9 @@ void GameScene::OnDestroy()
 		return true;
 		});
 
-	Blackhole* blackhole = FindGO<Blackhole>("blackhole");
+	
 	DeleteGO(blackhole);
+	
 
 	QueryGOs<Ring>("ring", [](Ring* ring)->bool {
 		DeleteGO(ring);
@@ -28,10 +30,9 @@ void GameScene::OnDestroy()
 		return true;
 		});
 
-	BackGround* background = FindGO<BackGround>("background");
-	DeleteGO(background);
+	//BackGround* background = FindGO<BackGround>("background");
+	//DeleteGO(background);
 
-	Player* player = FindGO<Player>("player");
 	DeleteGO(player);
 
 	GameCamera* gamecamera = FindGO<GameCamera>("gamecamera");
@@ -45,9 +46,9 @@ bool GameScene::Start()
 
 	NewGO<GameCamera>(0, "gamecamera");
 
-	NewGO<Player>(0, "player");
+	player = NewGO<Player>(0, "player");
 
-	NewGO<BackGround>(0, "background");
+	//NewGO<BackGround>(0, "background");
 
 
 	//敵をいっぱい作る(後から自動化したい)
@@ -71,11 +72,19 @@ bool GameScene::Start()
 
 	Ring* ring = nullptr;
 	ring = NewGO<Ring>(0, "ring");
+	ring->m_position = { 0.0f,0.0f,5000.0f };
+	ring->m_x = 30.0f;
+	ring->m_y = 20.0f;
 	ring = NewGO<Ring>(0, "ring");
 	ring->m_position = { 500.0f,0.0f,5000.0f };
+	ring->m_x = 90.0f;
+	ring->m_y = 180.0f;
 
-	Blackhole* blackhole = NewGO<Blackhole>(0, "blackhole");
-	blackhole->m_position = { 1000.0f,200.0f,500.0f };
+	
+	//blackhole = NewGO<Blackhole>(0, "blackhole");
+	//blackhole->m_position = { 5000.0f,200.0f,500.0f };
+
+	NewGO<Space>(0, "space");
 
 	return true;
 }
@@ -88,6 +97,12 @@ void GameScene::Update()
 	{
 		NewGO<GameScene>(0, "gamescene");
 		DeleteGO(this);
+	}
+
+	if (Pad(0).IsTrigger(enButtonRB2))
+	{
+		blackhole = NewGO<Blackhole>(0, "blackhole");
+		blackhole->m_position = { 5000.0f,200.0f,500.0f };
 	}
 
 	//ポーズ機能とかつけたい

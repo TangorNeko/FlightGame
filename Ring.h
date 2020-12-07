@@ -11,8 +11,10 @@ public:
 	prefab::CSkinModelRender* m_skinModelRender = nullptr;
 	Player* player = nullptr;
 
-	CVector3 m_position = { 0.0f,0.0f,5000.0f };
-	CVector3 m_direction = CVector3::Front;
-	CQuaternion m_qRot;
+	CVector3 m_position;
+	CVector3 m_direction;
+	float m_x = 0, m_y = 0;
+	CQuaternion m_qRotX, m_qRotY;
+	CQuaternion m_rotation;
 };
 
