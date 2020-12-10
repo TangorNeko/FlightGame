@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "GameCamera.h"
+#include "Blackhole.h"
 
 void GameCamera::OnDestroy()
 {
@@ -17,7 +18,7 @@ void GameCamera::Update()
 {
 	CVector3 Up = MainCamera().GetUp();
 	//カメラの位置はプレイヤーの進行方向の逆側の少し上側にする
-	if (Pad(0).IsPress(enButtonRB1))
+	if (FindGO<Blackhole>("blackhole",false) != nullptr)
 	{
 		m_position.x = player->m_position.x + player->m_moveDir.x * 250 + Up.x * 100;
 		m_position.y = player->m_position.y + player->m_moveDir.y * 250 + Up.y * 100;

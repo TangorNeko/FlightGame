@@ -2,11 +2,13 @@
 #include "Player.h"
 #include "Enemy.h"
 #include "Missile.h"
+#include "Blackhole.h"
 
 void Player::OnDestroy()
 {
 	DeleteGO(m_skinModelRender);
-	DeleteGO(m_spriteRender);
+	DeleteGO(m_sightSpriteRender);
+	DeleteGO(m_lockonSpriteRender);
 	DeleteGO(m_fontRender);
 }
 
@@ -17,10 +19,16 @@ bool Player::Start()
 	m_skinModelRender->Init(L"modelData/Vehicle.cmo");
 	m_skinModelRender->SetScale({ 0.1f,0.1f,0.1f });
 
-	//ロックオンマーカーのスプライトを作成
-	m_spriteRender = NewGO<prefab::CSpriteRender>(0);
-	m_spriteRender->Init(L"sprite/lock.dds", 128, 128);
+	//照準のスプライトを作成
+	m_sightSpriteRender = NewGO<prefab::CSpriteRender>(0);
+	m_sightSpriteRender->Init(L"sprite/Sight.dds", 32, 32);
 
+	//ロックオンマーカーのスプライトを作成
+	m_lockonSpriteRender = NewGO<prefab::CSpriteRender>(0);
+	m_lockonSpriteRender->Init(L"sprite/Lockon.dds", 256, 256);
+
+
+	//残弾数、燃料、スコアの文字を表示(テスト用)
 	m_fontRender = NewGO<prefab::CFontRender>(0);
 	m_fontRender->SetScale(0.5f);
 	m_fontRender->SetPosition({ -600.0f,250.0f });
@@ -42,7 +50,7 @@ void Player::Update()
 	}
 	if (Pad(0).IsPress(enButtonLB2))
 	{
-		m_fSpeed /= 100;
+		m_fSpeed *= 0;
 	}
 
 	//入力に応じて角度を変える
@@ -86,6 +94,19 @@ void Player::Update()
 
 	//ロックオン用の関数
 	Lockon();
+
+	//照準の描画
+	CVector2 screenpos2d;
+	MainCamera().CalcScreenPositionFromWorldPosition(screenpos2d, m_position + m_moveDir * 10000);
+	CVector3 screenpos = { screenpos2d.x,screenpos2d.y,0.0f };
+	m_sightSpriteRender->SetPosition(screenpos);
+
+	if (FindGO<Blackhole>("blackhole", false) == nullptr)
+		m_sightSpriteRender->SetScale({ 1.0f,1.0f,1.0f });
+	else
+		m_sightSpriteRender->SetScale({ 0.0f,0.0f,0.0f });
+	
+
 
 	//ミサイル発射用の関数
 	if (Pad(0).IsTrigger(enButtonB) && m_lockingEnemy != nullptr && m_lockingEnemy->m_isMortal == false &&m_shotcooldown <= 60)
@@ -145,15 +166,20 @@ void Player::Lockon()
 	//ロックオンできているなら敵の位置にロックオンマーカーを表示する
 	if (Check.Length())
 	{
-		dbg::DrawVector(Lockonpos - m_position, m_position, "locking");
+		//dbg::DrawVector(Lockonpos - m_position, m_position, "locking");
 		MainCamera().CalcScreenPositionFromWorldPosition(spritepos, Lockonpos);
 		CVector3 screenpos = { spritepos.x,spritepos.y,0.0f };
-		m_spriteRender->SetPosition(screenpos);
+		m_lockonSpriteRender->SetPosition(screenpos);
+
+		CVector3 distance = Lockonpos - m_position;
+
+		//距離に応じてロックオンマーカーの大きさを変更
+		m_lockonSpriteRender->SetScale({ 50 / (distance.Length() / 100) ,50 / (distance.Length() / 100) ,50 / (distance.Length() / 100) });
 	}
-	//できていないならプレイヤーのやや上に表示
+	//できていないならロックオンマーカーを非表示に
 	else
 	{	
-		m_spriteRender->SetPosition({ 0.0f,150.0f,0.0f });
+		m_lockonSpriteRender->SetScale(CVector3::Zero);
 		m_lockingEnemy = nullptr;
 	}
 }

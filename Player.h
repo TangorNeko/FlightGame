@@ -21,12 +21,13 @@ public:
 
 	CVector3 m_cameraup = CVector3::Up;
 	CQuaternion m_camerarot;
-	prefab::CSpriteRender* m_spriteRender = nullptr;
+	prefab::CSpriteRender* m_sightSpriteRender = nullptr;
+	prefab::CSpriteRender* m_lockonSpriteRender = nullptr;
 	Enemy* m_lockingEnemy = nullptr;
 	float m_maxLockonDistance = 25000.0f;
 	int m_shotcooldown = 0;
 
-	int m_fuel = 0;
+	int m_fuel = 5000;
 	int m_score = 0;
 	prefab::CFontRender* m_fontRender = nullptr;
 };

@@ -68,7 +68,6 @@ void Missile::Update()
 	odegx = degx;
 	odegy = degy;
 
-
 	
 	//“G‚Ì‹ß‚­‚Ü‚Å—ˆ‚½‚ç
 	if (diff.Length() < 200)

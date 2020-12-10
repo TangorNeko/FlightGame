@@ -4,15 +4,15 @@
 
 void Space::OnDestroy()
 {
-
+	DeleteGO(space);
 }
 
 bool Space::Start()
 {
 	
 	space = NewGO<prefab::CSky>(0,"space");
-	//space->SetSkyCubeMapFilePath(L"sprite/SpaceBox.dds");
-	space->SetScale({ 1000000.0f,1000000.0f,1000000.0f });
+	space->SetSkyCubeMapFilePath(L"sprite/GreenCubeMap.dds");
+	space->SetScale(1000000.0f);
 
 	player = FindGO<Player>("player");
 	space->SetPosition(player->m_position);

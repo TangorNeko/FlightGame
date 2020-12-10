@@ -4,13 +4,16 @@
 #include "Player.h"
 #include "BackGround.h"
 #include "Enemy.h"
-#include "Ring.h"
 #include "Blackhole.h"
 #include "Missile.h"
 #include "Space.h"
+#include "RingGenerator.h"
 
 void GameScene::OnDestroy()
 {
+	Space* space = FindGO<Space>("space");
+	DeleteGO(space);
+
 	QueryGOs<Missile>("missile", [](Missile* missile)->bool {
 		DeleteGO(missile);
 		return true;
@@ -18,12 +21,9 @@ void GameScene::OnDestroy()
 
 	
 	DeleteGO(blackhole);
-	
 
-	QueryGOs<Ring>("ring", [](Ring* ring)->bool {
-		DeleteGO(ring);
-		return true;
-		});
+	RingGenerator* ringgenerator = FindGO<RingGenerator>("ringgenerator");
+	DeleteGO(ringgenerator);
 
 	QueryGOs<Enemy>("enemy", [](Enemy* enemy)->bool {
 		DeleteGO(enemy);
@@ -54,7 +54,8 @@ bool GameScene::Start()
 	//敵をいっぱい作る(後から自動化したい)
 	Enemy* enemy = nullptr;
 	enemy = NewGO<Enemy>(0, "enemy");
-	enemy->m_position = { 5000,1000,2000 };
+	enemy->m_position = { 0,0000,-20000 };
+	/*
 	enemy = NewGO<Enemy>(0, "enemy");
 	enemy->m_position = { 2000,1000,5000 };
 	enemy = NewGO<Enemy>(0, "enemy");
@@ -69,16 +70,13 @@ bool GameScene::Start()
 	enemy->m_position = { 4000,1000,3000 };
 	enemy = NewGO<Enemy>(0, "enemy");
 	enemy->m_position = { 3000,1000,4000 };
+	enemy = NewGO<Enemy>(0, "enemy");
+	enemy->m_position = { 50000,1000,4000 };
+	enemy = NewGO<Enemy>(0, "eneemy");
+	enemy->m_position = { 51000,1000,4000 };
+	*/
 
-	Ring* ring = nullptr;
-	ring = NewGO<Ring>(0, "ring");
-	ring->m_position = { 0.0f,0.0f,5000.0f };
-	ring->m_x = 30.0f;
-	ring->m_y = 20.0f;
-	ring = NewGO<Ring>(0, "ring");
-	ring->m_position = { 500.0f,0.0f,5000.0f };
-	ring->m_x = 90.0f;
-	ring->m_y = 180.0f;
+	NewGO<RingGenerator>(0, "ringgenerator");
 
 	
 	//blackhole = NewGO<Blackhole>(0, "blackhole");
@@ -99,11 +97,13 @@ void GameScene::Update()
 		DeleteGO(this);
 	}
 
+	
 	if (Pad(0).IsTrigger(enButtonRB2))
 	{
 		blackhole = NewGO<Blackhole>(0, "blackhole");
 		blackhole->m_position = { 5000.0f,200.0f,500.0f };
 	}
+	
 
 	//ポーズ機能とかつけたい
 }

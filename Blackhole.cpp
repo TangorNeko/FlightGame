@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Blackhole.h"
 #include "Player.h"
+#include "RingGenerator.h"
 
 void Blackhole::OnDestroy()
 {
@@ -9,6 +10,7 @@ void Blackhole::OnDestroy()
 
 bool Blackhole::Start()
 {
+	DeleteGO(FindGO<RingGenerator>("ringgenerator"));
 	m_bhEffect = NewGO<prefab::CEffect>(0);
 	m_bhEffect->Play(L"effect/blackhole.efk");
 
