@@ -17,6 +17,9 @@ public:
 	CQuaternion m_laserQRot;
 	float odegx = 0, odegy = 0;
 
+
+	float dbgDegx = 0, dbgDegy = 0;
+
 	int count = 0;
 };
 

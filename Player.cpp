@@ -41,8 +41,6 @@ void Player::Update()
 	//スピード
 	m_fSpeed = 50;
 
-	
-
 	if (Pad(0).IsPress(enButtonLB3) && m_fuel > 0)
 	{
 		m_fSpeed *= 2;
@@ -90,7 +88,11 @@ void Player::Update()
 	m_moveDir.x = mRot.m[2][0];
 	m_moveDir.y = mRot.m[2][1];
 	m_moveDir.z = mRot.m[2][2];
-	m_position += m_moveDir * m_fSpeed;
+	//m_position += m_moveDir * m_fSpeed;
+
+	m_position.x += Pad(0).GetRStickXF() * m_fSpeed;
+	m_position.z += Pad(0).GetRStickYF() * m_fSpeed;
+	m_position.y += Pad(0).GetLStickYF() * m_fSpeed;
 
 	//ロックオン用の関数
 	Lockon();
@@ -118,8 +120,9 @@ void Player::Update()
 	if (m_shotcooldown < 0)
 		m_shotcooldown = 0;
 
-	
-	std::wstring a = L"(仮)装弾数 = " + std::to_wstring((120 - m_shotcooldown) / 60) + L"\n(仮)燃料 = " + std::to_wstring(m_fuel) + L"\n(仮)スコア = " + std::to_wstring(m_score);
+	Enemy* dbgenemy = FindGO<Enemy>("enemy");
+
+	std::wstring a = L"(仮)装弾数 = " + std::to_wstring((120 - m_shotcooldown) / 60) + L"\n(仮)燃料 = " + std::to_wstring(m_fuel) + L"\n(仮)スコア = " + std::to_wstring(m_score) + L"\nDegX = " + std::to_wstring(dbgenemy->dbgDegx) + L"\nDegY = " + std::to_wstring(dbgenemy->dbgDegy);
 	m_fontRender->SetText(a.c_str());
 
 	m_skinModelRender->SetRotation(m_rotation);

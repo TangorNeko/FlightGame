@@ -22,8 +22,10 @@ void GameScene::OnDestroy()
 	
 	DeleteGO(blackhole);
 
+	/*ブラックホール生成時に消してる
 	RingGenerator* ringgenerator = FindGO<RingGenerator>("ringgenerator");
 	DeleteGO(ringgenerator);
+	*/
 
 	QueryGOs<Enemy>("enemy", [](Enemy* enemy)->bool {
 		DeleteGO(enemy);
@@ -54,7 +56,7 @@ bool GameScene::Start()
 	//敵をいっぱい作る(後から自動化したい)
 	Enemy* enemy = nullptr;
 	enemy = NewGO<Enemy>(0, "enemy");
-	enemy->m_position = { 0,0000,-20000 };
+	enemy->m_position = { 0,0000,20000 };
 	/*
 	enemy = NewGO<Enemy>(0, "enemy");
 	enemy->m_position = { 2000,1000,5000 };

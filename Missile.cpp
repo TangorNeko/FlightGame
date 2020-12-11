@@ -13,7 +13,7 @@ bool Missile::Start()
 	m_skinModelRender = NewGO<prefab::CSkinModelRender>(0);
 	m_skinModelRender->Init(L"modeldata/testMissile.cmo");
 	m_effect2 = NewGO<prefab::CEffect>(0);
-	//m_skinModelRender->SetScale({ 1.0f,1.0f,100.0f });
+	//m_skinModelRender->SetScale({ 100.0f,100.0f,100.0f });
 	return true;
 }
 

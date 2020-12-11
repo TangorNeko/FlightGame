@@ -41,21 +41,32 @@ void Enemy::Update()
 
 	//xŽ²‚Ì‰ñ“]
 	float degx = acos(laserDir.Dot(zx));
+	dbgDegx = degx * (180/CMath::PI);
 	//Šp“x‚µ‚©Žè‚É“ü‚ç‚È‚¢‚Ì‚ÅŒü‚¢‚Ä‚¢‚é•ûŒü‚ª‰º‚È‚ç•‰‚Ì”‚É‚·‚é
-	if (laserDir.y > 0)
+	if (laserDir.y < 0)
 		degx = -degx;
+
+	if (degx < 0)
+	{
+		float a = degx;
+	}
+
 	CQuaternion qRotx;
-	qRotx.SetRotationDeg(CVector3::AxisX, degx - odegx);
+	qRotx.SetRotation(CVector3::AxisX, degx - odegx);
 
 	//yŽ²‚Ì‰ñ“]
 	float degy = acos(CVector3::Front.Dot(zx));
 	//Šp“x‚µ‚©Žè‚É“ü‚ç‚È‚¢‚Ì‚ÅŒü‚¢‚Ä‚¢‚é•ûŒü‚ª¶‚È‚ç•‰‚Ì”‚É‚·‚é
+	
+	dbgDegy = degy * (180 / CMath::PI);
+
 	if (laserDir.x < 0)
 		degy = -degy;
+		
 	CQuaternion qRoty;
 	qRoty.SetRotation(CVector3::AxisY, degy - odegy);
 
-	m_laserQRot.Multiply(qRotx, m_laserQRot);
+	m_laserQRot.Multiply(qRotx,m_laserQRot);
 	m_laserQRot.Multiply(qRoty, m_laserQRot);
 
 	odegx = degx;
@@ -72,7 +83,7 @@ void Enemy::Update()
 	if (m_laserEffect != nullptr) {
 		m_laserEffect->SetPosition(laserPosition);
 		m_laserEffect->SetRotation(m_laserQRot);
-		m_laserEffect->SetScale({ 100.0f,100.0f,100.0f });
+		m_laserEffect->SetScale({ 75.0f,75.0f,100.0f });
 	}
 
 	/*
