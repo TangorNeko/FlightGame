@@ -3,6 +3,7 @@
 #include "Enemy.h"
 #include "Missile.h"
 #include "Blackhole.h"
+#include "Laser.h"
 
 void Player::OnDestroy()
 {
@@ -14,11 +15,19 @@ void Player::OnDestroy()
 
 bool Player::Start()
 {
+	
+
 	//プレイヤーのモデルを作成
 	m_skinModelRender = NewGO<prefab::CSkinModelRender>(0);
 	m_skinModelRender->Init(L"modelData/Vehicle.cmo");
 	m_skinModelRender->SetScale({ 0.1f,0.1f,0.1f });
+	m_skinModelRender->SetShadowReceiverFlag(true);
+	m_skinModelRender->SetShadowCasterFlag(true);
 
+	m_specSRV.CreateFromDDSTextureFromFile(L"modelData/Vehicle.fbm/vehicle_spec.dds");
+	m_skinModelRender->FindMaterial([&](auto material) {
+		material->SetSpecularMap(m_specSRV.GetBody());
+	});
 	//照準のスプライトを作成
 	m_sightSpriteRender = NewGO<prefab::CSpriteRender>(0);
 	m_sightSpriteRender->Init(L"sprite/Sight.dds", 32, 32);
@@ -35,7 +44,15 @@ bool Player::Start()
 
 	return true;
 }
+void Player::PostUpdate()
+{
+	//照準の描画
+	CVector2 screenpos2d;
+	MainCamera().CalcScreenPositionFromWorldPosition(screenpos2d, m_position + m_moveDir * 10000);
+	CVector3 screenpos = { screenpos2d.x,screenpos2d.y,0.0f };
+	m_sightSpriteRender->SetPosition(screenpos);
 
+}
 void Player::Update()
 {
 	//スピード
@@ -53,10 +70,10 @@ void Player::Update()
 
 	//入力に応じて角度を変える
 	if (Pad(0).IsPress(enButtonDown))
-		m_x -= 1.5;
+		m_x -= 1.0;
 
 	if (Pad(0).IsPress(enButtonUp))
-		m_x += 1.5;
+		m_x += 1.0;
 
 	/*
 	if (Pad(0).IsPress(enButtonA))
@@ -67,10 +84,10 @@ void Player::Update()
 	*/
 
 	if (Pad(0).IsPress(enButtonRight))
-		m_z -= 1.5;
+		m_z -= 1.0;
 
 	if (Pad(0).IsPress(enButtonLeft))
-		m_z += 1.5;
+		m_z += 1.0;
 
 
 	//入力された角度をモデルに反映する
@@ -88,21 +105,25 @@ void Player::Update()
 	m_moveDir.x = mRot.m[2][0];
 	m_moveDir.y = mRot.m[2][1];
 	m_moveDir.z = mRot.m[2][2];
-	//m_position += m_moveDir * m_fSpeed;
+	m_position += m_moveDir * m_fSpeed;
 
-	m_position.x += Pad(0).GetRStickXF() * m_fSpeed;
-	m_position.z += Pad(0).GetRStickYF() * m_fSpeed;
-	m_position.y += Pad(0).GetLStickYF() * m_fSpeed;
+	if (m_frictionEffect == nullptr)
+	{
+		m_frictionEffect = NewGO<prefab::CEffect>(0);
+		m_frictionEffect->Play(L"effect/Drill2.efk");
+		m_frictionEffect->SetScale({ 10.0f,10.0f,10.0f });
+		m_frictionEffect->SetPosition(m_position);
+	}
+	else
+	{
+		m_frictionEffect->SetPosition(m_position);
+		m_frictionEffect->SetRotation(m_rotation);
+	}
 
 	//ロックオン用の関数
 	Lockon();
 
-	//照準の描画
-	CVector2 screenpos2d;
-	MainCamera().CalcScreenPositionFromWorldPosition(screenpos2d, m_position + m_moveDir * 10000);
-	CVector3 screenpos = { screenpos2d.x,screenpos2d.y,0.0f };
-	m_sightSpriteRender->SetPosition(screenpos);
-
+	
 	if (FindGO<Blackhole>("blackhole", false) == nullptr)
 		m_sightSpriteRender->SetScale({ 1.0f,1.0f,1.0f });
 	else
@@ -111,7 +132,7 @@ void Player::Update()
 
 
 	//ミサイル発射用の関数
-	if (Pad(0).IsTrigger(enButtonB) && m_lockingEnemy != nullptr && m_lockingEnemy->m_isMortal == false &&m_shotcooldown <= 60)
+	if (Pad(0).IsPress(enButtonB) && m_lockingEnemy != nullptr && m_lockingEnemy->m_isMortal == false &&m_shotcooldown <= 60)
 	{
 		ShootMissile();
 		m_shotcooldown += 60;
@@ -120,10 +141,11 @@ void Player::Update()
 	if (m_shotcooldown < 0)
 		m_shotcooldown = 0;
 
-	Enemy* dbgenemy = FindGO<Enemy>("enemy");
 
-	std::wstring a = L"(仮)装弾数 = " + std::to_wstring((120 - m_shotcooldown) / 60) + L"\n(仮)燃料 = " + std::to_wstring(m_fuel) + L"\n(仮)スコア = " + std::to_wstring(m_score) + L"\nDegX = " + std::to_wstring(dbgenemy->dbgDegx) + L"\nDegY = " + std::to_wstring(dbgenemy->dbgDegy);
+	//デバッグ用
+	std::wstring a = L"(仮)装弾数 = " + std::to_wstring((120 - m_shotcooldown) / 60) + L"\n(仮)燃料 = " + std::to_wstring(m_fuel) + L"\n(仮)スコア = " + std::to_wstring(m_score) + L"\n(仮)HP = " + std::to_wstring(m_hp);
 	m_fontRender->SetText(a.c_str());
+
 
 	m_skinModelRender->SetRotation(m_rotation);
 	m_skinModelRender->SetPosition(m_position);
@@ -141,7 +163,7 @@ void Player::Lockon()
 	const int lockondegree = 20;
 
 	//最高ロックオン可能距離より敵の位置までの距離が短いかつロックオン可能な角度内ならロックオン距離を更新する処理を繰り返す
-	QueryGOs<Enemy>("enemy", [&Lockonpos,lockondegree,this](Enemy* enemy)->bool 
+	QueryGOs<Enemy>("enemy", [&Lockonpos,lockondegree,this](Enemy* enemy)->bool
 		{
 			//敵から自機への距離
 			CVector3 tmp1 = enemy->m_position - this->m_position,
@@ -178,6 +200,7 @@ void Player::Lockon()
 
 		//距離に応じてロックオンマーカーの大きさを変更
 		m_lockonSpriteRender->SetScale({ 50 / (distance.Length() / 100) ,50 / (distance.Length() / 100) ,50 / (distance.Length() / 100) });
+		m_lockonSpriteRender->SetScale({1.0f,1.0f,1.0f });
 	}
 	//できていないならロックオンマーカーを非表示に
 	else

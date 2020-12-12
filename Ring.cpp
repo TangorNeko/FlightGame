@@ -25,6 +25,11 @@ bool Ring::Start()
 	m_skinModelRender->Init(L"modelData/ring.cmo");
 	m_skinModelRender->SetScale({ 2.0f,2.0f,2.0f });
 
+	m_specSRV.CreateFromDDSTextureFromFile(L"modelData/Vehicle.fbm/vehicle_spec.dds");
+	m_skinModelRender->FindMaterial([&](auto material) {
+		material->SetSpecularMap(m_specSRV.GetBody());
+		});
+
 	player = FindGO<Player>("player");
 
 	s_ringNum++;
@@ -33,13 +38,15 @@ bool Ring::Start()
 
 void Ring::Update()
 {
+	//モデルを回転(角度は生成時RingGeneratorからランダムに与えられる)
 	m_qRotX.SetRotationDeg(CVector3::AxisX, m_x);
-
 	m_qRotY.SetRotationDeg(CVector3::AxisY, m_y);
 
 	m_rotation.Multiply(m_qRotX, m_rotation);
 	m_rotation.Multiply(m_qRotY, m_rotation);
 
+
+	//モデルの回転からリングの赤面、青面判定用のベクトルも回転させる
 	auto mRot = CMatrix::Identity;
 	mRot.MakeRotationFromQuaternion(m_rotation);
 	m_direction.x = mRot.m[2][0];
@@ -49,12 +56,16 @@ void Ring::Update()
 	m_direction.Normalize();
 
 	
+	//プレイヤーとの距離
 	CVector3 diff = m_position - player->m_position;
 
+	//距離が400より近ければ
 	if (diff.Length() < 400)
 	{
 
 		//角度が80度より小さいなら取得
+
+
 		//赤い面から通ったならスコアを増加
 		if (m_direction.Dot(player->m_moveDir) > 0.17)
 		{
@@ -69,6 +80,7 @@ void Ring::Update()
 		}
 	}
 
+	//リングから50000より離れると削除する
 	if (diff.Length() > 50000)
 	{
 		DeleteGO(this);
@@ -78,6 +90,7 @@ void Ring::Update()
 	plight->SetPosition(m_position);
 	m_skinModelRender->SetRotation(m_rotation);
 
+	//回転は最初の1フレームのみなのでリセットしておく。
 	m_x = 0;
 	m_y = 0;
 }

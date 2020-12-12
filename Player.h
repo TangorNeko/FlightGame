@@ -7,6 +7,7 @@ public:
 	void OnDestroy();
 	bool Start();
 	void Update();
+	void PostUpdate();
 	void Lockon();
 	void ShootMissile();
 
@@ -26,7 +27,10 @@ public:
 	Enemy* m_lockingEnemy = nullptr;
 	float m_maxLockonDistance = 25000.0f;
 	int m_shotcooldown = 0;
+	prefab::CEffect* m_frictionEffect = nullptr;
 
+	CShaderResourceView m_specSRV;
+	int m_hp = 10000;
 	int m_fuel = 5000;
 	int m_score = 0;
 	prefab::CFontRender* m_fontRender = nullptr;

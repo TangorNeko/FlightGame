@@ -1,5 +1,6 @@
 #pragma once
 class Player;
+class Laser;
 
 class Enemy : public IGameObject
 {
@@ -12,14 +13,12 @@ public:
 	CVector3 m_position;
 	bool m_isMortal = false;
 	Player* m_targetPlayer = nullptr;
-	prefab::CEffect* m_laserEffect = nullptr;
 	bool m_isShooting = false;
-	CQuaternion m_laserQRot;
-	float odegx = 0, odegy = 0;
 
-
+	Laser* m_laser = nullptr;
 	float dbgDegx = 0, dbgDegy = 0;
 
 	int count = 0;
+	CShaderResourceView m_specSRV;
 };
 

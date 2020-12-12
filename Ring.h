@@ -19,5 +19,6 @@ public:
 	CQuaternion m_rotation;
 
 	prefab::CPointLight* plight = nullptr;
+	CShaderResourceView m_specSRV;
 };
 

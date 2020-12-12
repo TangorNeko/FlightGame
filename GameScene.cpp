@@ -8,6 +8,7 @@
 #include "Missile.h"
 #include "Space.h"
 #include "RingGenerator.h"
+#include "tkEngine/light/tkDirectionLight.h"
 
 void GameScene::OnDestroy()
 {
@@ -39,6 +40,8 @@ void GameScene::OnDestroy()
 
 	GameCamera* gamecamera = FindGO<GameCamera>("gamecamera");
 	DeleteGO(gamecamera);
+
+	DeleteGOs("DirectionLight");
 }
 
 bool GameScene::Start()
@@ -46,8 +49,35 @@ bool GameScene::Start()
 	//ÉxÉNÉgÉãÇâ¬éãâªÇ∑ÇÈ
 	dbg::SetDrawVectorEnable();
 
-	NewGO<GameCamera>(0, "gamecamera");
+	auto light = NewGO<prefab::CDirectionLight>(0, "DirectionLight");
+	CVector3 dir = { 1.0f, 0.0f, 0.0f };
 
+	light->SetDirection(dir);
+	light->SetColor({2.0f, 1.0f, 1.0f, 1.0f});
+
+	//
+	light = NewGO<prefab::CDirectionLight>(0, "DirectionLight");
+	dir = { 1.0f, 1.0f, 0.0f };
+	dir.Normalize();
+	light->SetDirection(dir);
+	light->SetColor({ 2.0f, 1.0f, 1.0f, 1.0f });
+
+	light = NewGO<prefab::CDirectionLight>(0, "DirectionLight");
+	dir = { -1.0f, 0.0f, 1.0f };
+	dir.Normalize();
+	light->SetDirection(dir);
+	light->SetColor({ 2.0f, 1.0f, 1.0f, 1.0f });
+
+	light = NewGO<prefab::CDirectionLight>(0, "DirectionLight");
+	dir = { -1.0f, -1.0f, 0.0f };
+	dir.Normalize();
+	light->SetDirection(dir);
+	light->SetColor({ 2.0f, 1.0f, 1.0f, 1.0f });
+
+	LightManager().SetAmbientLight({ 0.5f, 0.5f, 0.5f });
+	NewGO<GameCamera>(1, "gamecamera");
+
+	shadow::DirectionShadowMap().SetLightDirection({1.0f, 0.0f, 0.0f});
 	player = NewGO<Player>(0, "player");
 
 	//NewGO<BackGround>(0, "background");
@@ -55,28 +85,16 @@ bool GameScene::Start()
 
 	//ìGÇÇ¢Ç¡ÇœÇ¢çÏÇÈ(å„Ç©ÇÁé©ìÆâªÇµÇΩÇ¢)
 	Enemy* enemy = nullptr;
-	enemy = NewGO<Enemy>(0, "enemy");
-	enemy->m_position = { 0,0000,20000 };
-	/*
-	enemy = NewGO<Enemy>(0, "enemy");
-	enemy->m_position = { 2000,1000,5000 };
-	enemy = NewGO<Enemy>(0, "enemy");
-	enemy->m_position = { 10000,1000,1000 };
-	enemy = NewGO<Enemy>(0, "enemy");
-	enemy->m_position = { 1000,1000,10000 };
-	enemy = NewGO<Enemy>(0, "enemy");
-	enemy->m_position = { 3000,1000,7500 };
-	enemy = NewGO<Enemy>(0, "enemy");
-	enemy->m_position = { -7500,1000,3000 };
-	enemy = NewGO<Enemy>(0, "enemy");
-	enemy->m_position = { 4000,1000,3000 };
-	enemy = NewGO<Enemy>(0, "enemy");
-	enemy->m_position = { 3000,1000,4000 };
-	enemy = NewGO<Enemy>(0, "enemy");
-	enemy->m_position = { 50000,1000,4000 };
-	enemy = NewGO<Enemy>(0, "eneemy");
-	enemy->m_position = { 51000,1000,4000 };
-	*/
+	enemy = NewGO<Enemy>(1, "enemy");
+	enemy->m_position = { 0,0000,50000 };
+	enemy = NewGO<Enemy>(1, "enemy");
+	enemy->m_position = { 2000,1000,35000 };
+	enemy = NewGO<Enemy>(1, "enemy");
+	enemy->m_position = { 10000,1000,31000 };
+	enemy = NewGO<Enemy>(1, "enemy");
+	enemy->m_position = { -10000,1000,34000 };
+	enemy = NewGO<Enemy>(1, "enemy");
+	enemy->m_position = { 11000,1000,34000 };
 
 	NewGO<RingGenerator>(0, "ringgenerator");
 
