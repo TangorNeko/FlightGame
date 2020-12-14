@@ -28,6 +28,9 @@ public:
 	float m_maxLockonDistance = 25000.0f;
 	int m_shotcooldown = 0;
 	prefab::CEffect* m_frictionEffect = nullptr;
+	bool m_isBoosting = false;
+	bool m_isTurning = false;
+	int m_turnCount = 0;
 
 	CShaderResourceView m_specSRV;
 	int m_hp = 10000;

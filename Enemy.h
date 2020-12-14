@@ -20,5 +20,13 @@ public:
 
 	int count = 0;
 	CShaderResourceView m_specSRV;
+
+
+	CVector3 laserpos;
+	prefab::CEffect* m_effect = nullptr;
+	float degx, degy, odegx = 0, odegy = 0;
+	CQuaternion m_qRotX, m_qRotY, m_rotation;
+
+	bool m_isDeleted = true;
 };
 

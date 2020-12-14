@@ -85,16 +85,20 @@ bool GameScene::Start()
 
 	//ìGÇÇ¢Ç¡ÇœÇ¢çÏÇÈ(å„Ç©ÇÁé©ìÆâªÇµÇΩÇ¢)
 	Enemy* enemy = nullptr;
-	enemy = NewGO<Enemy>(1, "enemy");
+	enemy = NewGO<Enemy>(0, "enemy");
 	enemy->m_position = { 0,0000,50000 };
-	enemy = NewGO<Enemy>(1, "enemy");
+
+	
+	enemy = NewGO<Enemy>(0, "enemy");
 	enemy->m_position = { 2000,1000,35000 };
-	enemy = NewGO<Enemy>(1, "enemy");
+	/*
+	enemy = NewGO<Enemy>(0, "enemy");
 	enemy->m_position = { 10000,1000,31000 };
-	enemy = NewGO<Enemy>(1, "enemy");
+	enemy = NewGO<Enemy>(0, "enemy");
 	enemy->m_position = { -10000,1000,34000 };
-	enemy = NewGO<Enemy>(1, "enemy");
+	enemy = NewGO<Enemy>(0, "enemy");
 	enemy->m_position = { 11000,1000,34000 };
+	*/
 
 	NewGO<RingGenerator>(0, "ringgenerator");
 
@@ -121,7 +125,7 @@ void GameScene::Update()
 	if (Pad(0).IsTrigger(enButtonRB2))
 	{
 		blackhole = NewGO<Blackhole>(0, "blackhole");
-		blackhole->m_position = { 5000.0f,200.0f,500.0f };
+		blackhole->m_position = { player->m_position - player->m_moveDir * 10000 };
 	}
 	
 

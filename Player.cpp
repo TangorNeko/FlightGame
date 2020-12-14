@@ -11,6 +11,9 @@ void Player::OnDestroy()
 	DeleteGO(m_sightSpriteRender);
 	DeleteGO(m_lockonSpriteRender);
 	DeleteGO(m_fontRender);
+
+	if(m_isBoosting == true)
+	DeleteGO(m_frictionEffect);
 }
 
 bool Player::Start()
@@ -58,37 +61,80 @@ void Player::Update()
 	//スピード
 	m_fSpeed = 50;
 
-	if (Pad(0).IsPress(enButtonLB3) && m_fuel > 0)
+	if (Pad(0).IsTrigger(enButtonX))
 	{
-		m_fSpeed *= 2;
-		m_fuel--;
-	}
-	if (Pad(0).IsPress(enButtonLB2))
-	{
-		m_fSpeed *= 0;
+		m_isTurning = true;
 	}
 
-	//入力に応じて角度を変える
-	if (Pad(0).IsPress(enButtonDown))
-		m_x -= 1.0;
+	if (m_isTurning)
+	{
+		if (m_isBoosting == true)
+			DeleteGO(m_frictionEffect);
+		m_isBoosting = false;
 
-	if (Pad(0).IsPress(enButtonUp))
-		m_x += 1.0;
+		if (m_turnCount < 90)
+		{
+			m_x -= 2.0f;
+		}
+		else if(m_turnCount < 180)
+		{
+			m_z += 2.0f;
+		}
+		else
+		{
+			m_turnCount = 0;
+			m_isTurning = false;
+		}
+		m_turnCount++;
+	}
+	else
+	{
+		if (Pad(0).IsPress(enButtonLB3) && m_fuel > 0)
+		{
+			m_fSpeed *= 2;
+			m_fuel--;
 
-	/*
-	if (Pad(0).IsPress(enButtonA))
-		m_y--;
+			if (m_isBoosting == false) {
+				m_frictionEffect = NewGO<prefab::CEffect>(0);
+				m_frictionEffect->Play(L"effect/Drill2.efk");
+				m_frictionEffect->SetScale({ 10.0f,10.0f,10.0f });
+			}
 
-	if (Pad(0).IsPress(enButtonB))
-		m_y++;
-	*/
+			m_isBoosting = true;
+		}
+		else
+		{
+			if (m_isBoosting == true)
+				DeleteGO(m_frictionEffect);
+			m_isBoosting = false;
+		}
+		if (Pad(0).IsPress(enButtonLB2))
+		{
+			m_fSpeed *= 0;
+		}
 
-	if (Pad(0).IsPress(enButtonRight))
-		m_z -= 1.0;
+		//入力に応じて角度を変える
+		if (Pad(0).IsPress(enButtonDown))
+			m_x -= 1.0;
 
-	if (Pad(0).IsPress(enButtonLeft))
-		m_z += 1.0;
+		if (Pad(0).IsPress(enButtonUp))
+			m_x += 1.0;
 
+		/*
+		if (Pad(0).IsPress(enButtonA))
+			m_y--;
+
+		if (Pad(0).IsPress(enButtonB))
+			m_y++;
+		*/
+
+		if (Pad(0).IsPress(enButtonRight))
+			m_z -= 1.0;
+
+		if (Pad(0).IsPress(enButtonLeft))
+			m_z += 1.0;
+
+	}
 
 	//入力された角度をモデルに反映する
 	m_qRotX.SetRotationDeg(CVector3::AxisX, m_x);
@@ -107,14 +153,7 @@ void Player::Update()
 	m_moveDir.z = mRot.m[2][2];
 	m_position += m_moveDir * m_fSpeed;
 
-	if (m_frictionEffect == nullptr)
-	{
-		m_frictionEffect = NewGO<prefab::CEffect>(0);
-		m_frictionEffect->Play(L"effect/Drill2.efk");
-		m_frictionEffect->SetScale({ 10.0f,10.0f,10.0f });
-		m_frictionEffect->SetPosition(m_position);
-	}
-	else
+	if (m_frictionEffect != nullptr)
 	{
 		m_frictionEffect->SetPosition(m_position);
 		m_frictionEffect->SetRotation(m_rotation);
@@ -132,7 +171,7 @@ void Player::Update()
 
 
 	//ミサイル発射用の関数
-	if (Pad(0).IsPress(enButtonB) && m_lockingEnemy != nullptr && m_lockingEnemy->m_isMortal == false &&m_shotcooldown <= 60)
+	if (Pad(0).IsTrigger(enButtonB) && m_lockingEnemy != nullptr && m_lockingEnemy->m_isMortal == false &&m_shotcooldown <= 60)
 	{
 		ShootMissile();
 		m_shotcooldown += 60;
