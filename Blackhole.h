@@ -13,6 +13,7 @@ public:
 	CVector3 m_scaling = { 100.0f,100.0f,100.0f };
 	prefab::CEffect* m_bhEffect = nullptr;
 	Player* player = nullptr;
+	bool m_isPulling = false;
 
 	int count = 0;
 	int expire = 100;

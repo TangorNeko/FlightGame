@@ -1,6 +1,5 @@
 #pragma once
 class Player;
-class Laser;
 
 class Enemy : public IGameObject
 {
@@ -15,7 +14,6 @@ public:
 	Player* m_targetPlayer = nullptr;
 	bool m_isShooting = false;
 
-	Laser* m_laser = nullptr;
 	float dbgDegx = 0, dbgDegy = 0;
 
 	int count = 0;
@@ -28,5 +26,6 @@ public:
 	CQuaternion m_qRotX, m_qRotY, m_rotation;
 
 	bool m_isDeleted = true;
+	int m_damageCount = 0;
 };
 

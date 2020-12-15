@@ -4,7 +4,9 @@
 
 void Missile::OnDestroy()
 {
+	
 	DeleteGO(m_effect2);
+
 	DeleteGO(m_skinModelRender);
 }
 
@@ -19,6 +21,7 @@ bool Missile::Start()
 
 void Missile::Update()
 {	
+	
 	if (m_effect2->IsPlay() == false)
 	{
 		m_effect2->Play(L"effect/Missile3.efk");
@@ -26,6 +29,7 @@ void Missile::Update()
 
 	m_effect2->SetPosition(m_position);
 	m_effect2->SetScale({ 5.0f,5.0f,5.0f });
+	
 
 	//“G‚ð’Ç”ö‚·‚é
 	CVector3 diff = m_moveDir = m_trackingEnemy->m_position - m_position;
@@ -73,9 +77,9 @@ void Missile::Update()
 	if (diff.Length() < 200)
 	{
 		prefab::CEffect* effect = NewGO<prefab::CEffect>(0);
-		effect->SetPosition(m_trackingEnemy->m_position);
-		effect->SetScale({ 100.0f,100.0f,100.0f });
 		effect->Play(L"effect/fire3.efk");
+		effect->SetPosition(m_position);
+		effect->SetScale({ 100.0f,100.0f,100.0f });
 		DeleteGO(m_trackingEnemy);
 		DeleteGO(this);
 	}

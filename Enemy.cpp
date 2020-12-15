@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "Enemy.h"
 #include "Player.h"
-#include "Laser.h"
 
 void Enemy::OnDestroy()
 {
@@ -48,16 +47,14 @@ void Enemy::Update()
 		m_effect = NewGO<prefab::CEffect>(0);
 		m_effect->Play(L"effect/Laser.efk");
 		m_effect->SetScale({ 25.0f,25.0f,100.0f });
+		
 		m_isShooting = true;
 		m_isDeleted = false;
 	}
 
 	if (m_effect != nullptr)
 	{
-
-		//テスト移植
-
-//レーザーを出す位置はアンテナからにする
+		//レーザーを出す位置はアンテナからにする
 		laserpos.x = m_position.x;
 		laserpos.y = m_position.y + 950.0f;
 		laserpos.z = m_position.z;
@@ -110,21 +107,29 @@ void Enemy::Update()
 
 		odegx = degx;
 		odegy = degy;
-
-		//テスト移植
 	}
 
 	//プレイヤーとの距離が20000以上離れていて、かつレーザーを発射していたら
 	if (diff.Length() > 20000 && m_isShooting == true && m_effect != nullptr)
 	{
-		//DeleteGO(m_effect);
-		m_effect->Release();
+		DeleteGO(m_effect);
+		m_effect = nullptr;
+		
 		m_isShooting = false;
 		m_isDeleted = true;
 	}
 
-	/*
-	//敵の動き
+	//レーザーのダメージを付与
+	if (m_isShooting == true)
+	{
+		m_damageCount++;
+		if (m_damageCount == 10)
+		{
+			m_targetPlayer->m_hp--;
+			m_damageCount = 0;
+		}
+	}
+
 	count++;
 	if (count < 100)
 	{
@@ -140,7 +145,6 @@ void Enemy::Update()
 	}
 	else
 		count = 0;
-		*/
 		
 	m_skinModelRender->SetPosition(m_position);
 }

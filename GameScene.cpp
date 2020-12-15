@@ -8,6 +8,7 @@
 #include "Missile.h"
 #include "Space.h"
 #include "RingGenerator.h"
+#include "Title.h"
 #include "tkEngine/light/tkDirectionLight.h"
 
 void GameScene::OnDestroy()
@@ -21,17 +22,19 @@ void GameScene::OnDestroy()
 		});
 
 	
-	DeleteGO(blackhole);
+	//DeleteGO(blackhole);
 
-	/*ブラックホール生成時に消してる
-	RingGenerator* ringgenerator = FindGO<RingGenerator>("ringgenerator");
+	//ブラックホール生成時に消してる
+	RingGenerator* ringgenerator = FindGO<RingGenerator>("ringgenerator",false);
+	if (ringgenerator != nullptr)
 	DeleteGO(ringgenerator);
-	*/
-
+	
+	
 	QueryGOs<Enemy>("enemy", [](Enemy* enemy)->bool {
 		DeleteGO(enemy);
 		return true;
 		});
+
 
 	//BackGround* background = FindGO<BackGround>("background");
 	//DeleteGO(background);
@@ -75,6 +78,7 @@ bool GameScene::Start()
 	light->SetColor({ 2.0f, 1.0f, 1.0f, 1.0f });
 
 	LightManager().SetAmbientLight({ 0.5f, 0.5f, 0.5f });
+
 	NewGO<GameCamera>(1, "gamecamera");
 
 	shadow::DirectionShadowMap().SetLightDirection({1.0f, 0.0f, 0.0f});
@@ -91,14 +95,13 @@ bool GameScene::Start()
 	
 	enemy = NewGO<Enemy>(0, "enemy");
 	enemy->m_position = { 2000,1000,35000 };
-	/*
 	enemy = NewGO<Enemy>(0, "enemy");
 	enemy->m_position = { 10000,1000,31000 };
 	enemy = NewGO<Enemy>(0, "enemy");
 	enemy->m_position = { -10000,1000,34000 };
 	enemy = NewGO<Enemy>(0, "enemy");
 	enemy->m_position = { 11000,1000,34000 };
-	*/
+	
 
 	NewGO<RingGenerator>(0, "ringgenerator");
 

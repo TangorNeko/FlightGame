@@ -3,7 +3,6 @@
 #include "Enemy.h"
 #include "Missile.h"
 #include "Blackhole.h"
-#include "Laser.h"
 
 void Player::OnDestroy()
 {
@@ -12,8 +11,18 @@ void Player::OnDestroy()
 	DeleteGO(m_lockonSpriteRender);
 	DeleteGO(m_fontRender);
 
-	if(m_isBoosting == true)
-	DeleteGO(m_frictionEffect);
+	if (m_frictionEffect != nullptr && m_frictionEffect->IsPlay() == true)
+		DeleteGO(m_frictionEffect);
+
+	/*
+	if (m_jetEffectRight != nullptr && m_jetEffectRight->IsPlay() == true)
+		DeleteGO(m_jetEffectRight);
+
+	if (m_jetEffectLeft != nullptr && m_jetEffectLeft->IsPlay() == true)
+		DeleteGO(m_jetEffectRight);
+		*/
+
+
 }
 
 bool Player::Start()
@@ -40,6 +49,14 @@ bool Player::Start()
 	m_lockonSpriteRender->Init(L"sprite/Lockon.dds", 256, 256);
 
 
+	//ジェットエフェクト
+	m_jetEffectRight = NewGO<prefab::CEffect > (0);
+	m_jetEffectRight->Play(L"effect/Jet.efk");
+
+	m_jetEffectLeft = NewGO<prefab::CEffect>(0);
+	m_jetEffectLeft->Play(L"effect/Jet.efk");
+
+
 	//残弾数、燃料、スコアの文字を表示(テスト用)
 	m_fontRender = NewGO<prefab::CFontRender>(0);
 	m_fontRender->SetScale(0.5f);
@@ -59,7 +76,16 @@ void Player::PostUpdate()
 void Player::Update()
 {
 	//スピード
-	m_fSpeed = 50;
+
+	m_fSpeed += Pad(0).GetRStickYF();
+
+	if (m_fSpeed < 20)
+		m_fSpeed = 20;
+
+	if (m_fSpeed > 150)
+		m_fSpeed = 150;
+
+	m_fuel -= m_fSpeed / 2000;
 
 	if (Pad(0).IsTrigger(enButtonX))
 	{
@@ -68,8 +94,13 @@ void Player::Update()
 
 	if (m_isTurning)
 	{
+		m_fSpeed = 50;
+
 		if (m_isBoosting == true)
+		{
 			DeleteGO(m_frictionEffect);
+			m_frictionEffect = nullptr;
+		}
 		m_isBoosting = false;
 
 		if (m_turnCount < 90)
@@ -89,15 +120,25 @@ void Player::Update()
 	}
 	else
 	{
-		if (Pad(0).IsPress(enButtonLB3) && m_fuel > 0)
+		if (m_fSpeed > 100)
 		{
-			m_fSpeed *= 2;
-			m_fuel--;
+			
 
 			if (m_isBoosting == false) {
+
 				m_frictionEffect = NewGO<prefab::CEffect>(0);
 				m_frictionEffect->Play(L"effect/Drill2.efk");
 				m_frictionEffect->SetScale({ 10.0f,10.0f,10.0f });
+
+
+				m_sbEffectRight = NewGO<prefab::CEffect>(0);
+				m_sbEffectRight->Play(L"effect/Sonicboom.efk");
+				m_sbEffectRight->SetScale({ 2.5f,2.5f,5.0f });
+
+
+				m_sbEffectLeft = NewGO<prefab::CEffect>(0);
+				m_sbEffectLeft->Play(L"effect/Sonicboom.efk");
+				m_sbEffectLeft->SetScale({ 2.5f,2.5f,5.0f });
 			}
 
 			m_isBoosting = true;
@@ -105,14 +146,21 @@ void Player::Update()
 		else
 		{
 			if (m_isBoosting == true)
+			{
 				DeleteGO(m_frictionEffect);
+				m_frictionEffect = nullptr;
+			}
 			m_isBoosting = false;
 		}
+
+
 		if (Pad(0).IsPress(enButtonLB2))
 		{
 			m_fSpeed *= 0;
 		}
 
+
+		
 		//入力に応じて角度を変える
 		if (Pad(0).IsPress(enButtonDown))
 			m_x -= 1.0;
@@ -133,6 +181,18 @@ void Player::Update()
 
 		if (Pad(0).IsPress(enButtonLeft))
 			m_z += 1.0;
+		
+
+		if (Pad(0).GetLStickYF() > 0.5)
+			m_x--;
+		else if (Pad(0).GetLStickYF() < -0.5)
+			m_x++;
+
+		if (Pad(0).GetLStickXF() < -0.5)
+			m_z++;
+		else if (Pad(0).GetLStickXF() > 0.5)
+			m_z--;
+
 
 	}
 
@@ -153,10 +213,44 @@ void Player::Update()
 	m_moveDir.z = mRot.m[2][2];
 	m_position += m_moveDir * m_fSpeed;
 
+	m_rightDir.x = mRot.m[0][0];
+	m_rightDir.y = mRot.m[0][1];
+	m_rightDir.z = mRot.m[0][2];
+
+	m_upDir.x = mRot.m[1][0];
+	m_upDir.y = mRot.m[1][1];
+	m_upDir.z = mRot.m[1][2];
+
 	if (m_frictionEffect != nullptr)
 	{
 		m_frictionEffect->SetPosition(m_position);
 		m_frictionEffect->SetRotation(m_rotation);
+	}
+
+	if (m_sbEffectRight != nullptr)
+	{
+		m_sbEffectRight->SetPosition(m_position + m_rightDir * 7.5 + m_moveDir * -90 + m_upDir * 20);
+		m_sbEffectRight->SetRotation(m_rotation);
+	}
+
+	if (m_sbEffectLeft != nullptr)
+	{
+		m_sbEffectLeft->SetPosition(m_position + m_rightDir * -7.5 + m_moveDir * -90 + m_upDir * 20);
+		m_sbEffectLeft->SetRotation(m_rotation);
+	}
+
+	if (m_jetEffectRight != nullptr)
+	{
+		m_jetEffectRight->SetPosition(m_position + m_rightDir * 7 + m_moveDir * -90 + m_upDir * 15);
+		m_jetEffectRight->SetRotation(m_rotation);
+		m_jetEffectRight->SetScale({ 5.0f,5.0f, 1 + m_fSpeed / 10 });
+	}
+
+	if (m_jetEffectLeft != nullptr)
+	{
+		m_jetEffectLeft->SetPosition(m_position + m_rightDir * -7 + m_moveDir * -90 + m_upDir * 15);
+		m_jetEffectLeft->SetRotation(m_rotation);
+		m_jetEffectLeft->SetScale({ 5.0f,5.0f,1 + m_fSpeed / 10 });
 	}
 
 	//ロックオン用の関数
@@ -182,7 +276,7 @@ void Player::Update()
 
 
 	//デバッグ用
-	std::wstring a = L"(仮)装弾数 = " + std::to_wstring((120 - m_shotcooldown) / 60) + L"\n(仮)燃料 = " + std::to_wstring(m_fuel) + L"\n(仮)スコア = " + std::to_wstring(m_score) + L"\n(仮)HP = " + std::to_wstring(m_hp);
+	std::wstring a = L"(仮)装弾数 = " + std::to_wstring((120 - m_shotcooldown) / 60) + L"\n(仮)燃料 = " + std::to_wstring(m_fuel) + L"\n(仮)スコア = " + std::to_wstring(m_score) + L"\n(仮)HP = " + std::to_wstring(m_hp) + L"\n(仮)スピード = " + std::to_wstring(m_fSpeed);
 	m_fontRender->SetText(a.c_str());
 
 
@@ -252,7 +346,21 @@ void Player::Lockon()
 void Player::ShootMissile()
 {
 	Missile* missile = NewGO<Missile>(0, "missile");
-	missile->m_position = m_position + m_moveDir * 100;
+
+	//左右交互にミサイルを撃つ
+	if (m_isMissileRight)
+	{
+		missile->m_position = m_position + m_moveDir * 100.0f + m_rightDir * 50.0f;
+		m_isMissileRight = false;
+	}
+	else
+	{
+		missile->m_position = m_position + m_moveDir * 100.0f + m_rightDir * -50.0f;
+		m_isMissileRight = true;
+	}
+
+	missile->m_fSpeed = max(1,m_fSpeed - 30);
+
 	//ミサイルに追尾先の敵を教える
 	missile->m_trackingEnemy = m_lockingEnemy;
 	//撃った瞬間相手に死にゆく定めを付与する
