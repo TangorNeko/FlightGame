@@ -3,13 +3,19 @@
 #include "GameCamera.h"
 #include "Player.h"
 #include "BackGround.h"
-#include "Enemy.h"
+#include "LaserEnemy.h"
+#include "MissileEnemy.h"
 #include "Blackhole.h"
 #include "Missile.h"
 #include "Space.h"
 #include "RingGenerator.h"
-#include "Title.h"
+#include "TitleScene.h"
+#include "EnemyMissile.h"
+#include "EnemyGenerator.h"
+#include "Mission.h"
 #include "tkEngine/light/tkDirectionLight.h"
+#include <random>
+
 
 void GameScene::OnDestroy()
 {
@@ -21,6 +27,11 @@ void GameScene::OnDestroy()
 		return true;
 		});
 
+	QueryGOs<EnemyMissile>("enemymissile", [](EnemyMissile* enemymissile)->bool {
+		DeleteGO(enemymissile);
+		return true;
+		});
+
 	
 	//DeleteGO(blackhole);
 
@@ -29,11 +40,15 @@ void GameScene::OnDestroy()
 	if (ringgenerator != nullptr)
 	DeleteGO(ringgenerator);
 	
-	
-	QueryGOs<Enemy>("enemy", [](Enemy* enemy)->bool {
+
+	DeleteGO(enemygenerator);
+	//敵の削除のタイミングは要検討
+	/*
+	QueryGOs<IEnemy>("enemy", [](IEnemy* enemy)->bool {
 		DeleteGO(enemy);
 		return true;
 		});
+		*/
 
 
 	//BackGround* background = FindGO<BackGround>("background");
@@ -87,21 +102,26 @@ bool GameScene::Start()
 	//NewGO<BackGround>(0, "background");
 
 
-	//敵をいっぱい作る(後から自動化したい)
-	Enemy* enemy = nullptr;
-	enemy = NewGO<Enemy>(0, "enemy");
-	enemy->m_position = { 0,0000,50000 };
+	//敵をいっぱい作る
+	enemygenerator = NewGO<EnemyGenerator>(0, "enemygenerator");
+	/*
+	LaserEnemy* lenemy = nullptr;
+	lenemy = NewGO<LaserEnemy>(0, "enemy");
+	lenemy->m_position = { 0,0000,50000 };
+	lenemy = NewGO<LaserEnemy>(0, "enemy");
+	lenemy->m_position = { 2000,1000,65000 };
+	lenemy = NewGO<LaserEnemy>(0, "enemy");
+	lenemy->m_position = { 10000,1000,61000 };
+	lenemy = NewGO<LaserEnemy>(0, "enemy");
+	lenemy->m_position = { -10000,1000,64000 };
+	lenemy = NewGO<LaserEnemy>(0, "enemy");
+	lenemy->m_position = { 11000,1000,64000 };
 
 	
-	enemy = NewGO<Enemy>(0, "enemy");
-	enemy->m_position = { 2000,1000,35000 };
-	enemy = NewGO<Enemy>(0, "enemy");
-	enemy->m_position = { 10000,1000,31000 };
-	enemy = NewGO<Enemy>(0, "enemy");
-	enemy->m_position = { -10000,1000,34000 };
-	enemy = NewGO<Enemy>(0, "enemy");
-	enemy->m_position = { 11000,1000,34000 };
-	
+	MissileEnemy* menemy = nullptr;
+	menemy = NewGO<MissileEnemy>(0, "enemy");
+	menemy->m_position = { 3000,2000,36000 };
+	*/
 
 	NewGO<RingGenerator>(0, "ringgenerator");
 
@@ -120,7 +140,7 @@ void GameScene::Update()
 	//Aボタンでリセット
 	if (Pad(0).IsTrigger(enButtonA))
 	{
-		NewGO<GameScene>(0, "gamescene");
+		NewGO<TitleScene>(0, "titlescene");
 		DeleteGO(this);
 	}
 
@@ -132,5 +152,25 @@ void GameScene::Update()
 	}
 	
 
+	if (m_gameTimer > 300)
+	{
+		std::random_device seed_gen;
+		std::mt19937_64 rnd(seed_gen());
+		if (rnd() % 1000 == 777 && m_isOnMission == false)
+		{
+			m_mission = NewGO<Mission>(0, "mission");
+			m_isOnMission = true;
+		}
+	
+		if (m_isOnMission == true && m_mission->m_isMissionEnd)
+		{
+			DeleteGO(m_mission);
+			m_mission = nullptr;
+			m_isOnMission = false;
+		}
+	}
+
+
+	m_gameTimer++;
 	//ポーズ機能とかつけたい
 }

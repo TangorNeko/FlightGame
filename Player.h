@@ -1,5 +1,5 @@
 #pragma once
-class Enemy;
+class IEnemy;
 
 class Player : public IGameObject
 {
@@ -22,7 +22,7 @@ public:
 
 	prefab::CSpriteRender* m_sightSpriteRender = nullptr;
 	prefab::CSpriteRender* m_lockonSpriteRender = nullptr;
-	Enemy* m_lockingEnemy = nullptr;
+	IEnemy* m_lockingEnemy = nullptr;
 	float m_maxLockonDistance = 25000.0f;
 	int m_shotcooldown = 0;
 	prefab::CEffect* m_frictionEffect = nullptr;
@@ -30,8 +30,10 @@ public:
 	prefab::CEffect* m_jetEffectRight = nullptr, * m_jetEffectLeft = nullptr;
 	bool m_isBoosting = false;
 	bool m_isTurning = false;
+	float m_fSpeedBeforeTurn = 0;
 	bool m_isMissileRight = false;
 	int m_turnCount = 0;
+	int m_trackingMissileNum = 0;
 
 	CShaderResourceView m_specSRV;
 	int m_hp = 10000;

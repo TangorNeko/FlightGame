@@ -1,36 +1,55 @@
 #include "stdafx.h"
-#include "Missile.h"
-#include "LaserEnemy.h"
+#include "EnemyMissile.h"
+#include "Player.h"
 
-void Missile::OnDestroy()
+void EnemyMissile::OnDestroy()
 {
-	
+
 	DeleteGO(m_effect2);
 
 	DeleteGO(m_skinModelRender);
 }
 
-bool Missile::Start()
+bool EnemyMissile::Start()
 {
 	m_skinModelRender = NewGO<prefab::CSkinModelRender>(0);
 	m_skinModelRender->Init(L"modelData/MissileTest.cmo");
 	m_effect2 = NewGO<prefab::CEffect>(0);
-	m_skinModelRender->SetScale({ 1.5f,1.5f,1.5f });
+	m_skinModelRender->SetScale({1.5f,1.5f,1.5f });
+
+	m_trackingPlayer = FindGO<Player>("player");
+
+	m_trackingPlayer->m_trackingMissileNum++;
+
+	m_oldMoveDir = m_trackingPlayer->m_position - m_position;
+	m_oldMoveDir.Normalize();
 	return true;
 }
 
-void Missile::Update()
-{	
-	
+void EnemyMissile::Update()
+{
+
 	if (m_effect2->IsPlay() == false)
 	{
 		m_effect2->Play(L"effect/Missile3.efk");
 	}
 
 	//“G‚ð’Ç”ö‚·‚é
-	CVector3 diff = m_moveDir = m_trackingEnemy->m_position - m_position;
+	CVector3 diff = m_moveDir = m_trackingPlayer->m_position - m_position;
 	m_moveDir.Normalize();
-	m_fSpeed += m_fSpeed / 10;
+
+	//ƒ^[ƒ“‚µ‚½ê‡’Ç”ö‚µ‚È‚­‚È‚é
+	if (m_trackingPlayer->m_isTurning == true && m_isRocking == true)
+	{
+		m_isRocking = false;
+		m_trackingPlayer->m_trackingMissileNum--;
+	}
+
+	if (m_isRocking == false)
+		m_moveDir = m_oldMoveDir;
+
+	m_oldMoveDir = m_moveDir;
+	m_fSpeed += m_fSpeed / 20;
 	if (m_fSpeed > 300)
 	{
 		m_fSpeed = 300;
@@ -71,15 +90,19 @@ void Missile::Update()
 	odegx = degx;
 	odegy = degy;
 
-	
+
 	//“G‚Ì‹ß‚­‚Ü‚Å—ˆ‚½‚ç
 	if (diff.Length() < 200)
 	{
 		prefab::CEffect* effect = NewGO<prefab::CEffect>(0);
 		effect->Play(L"effect/fire3.efk");
-		effect->SetPosition(m_position);
-		effect->SetScale({ 100.0f,100.0f,100.0f });
-		DeleteGO(m_trackingEnemy);
+		effect->SetPosition(m_trackingPlayer->m_position + m_trackingPlayer->m_moveDir * m_trackingPlayer->m_fSpeed * 20 + m_trackingPlayer->m_upDir * -200);
+		effect->SetScale({ 50.0f,50.0f,50.0f });
+		m_trackingPlayer->m_trackingMissileNum--;
 		DeleteGO(this);
 	}
+
+	m_lifeSpan--;
+	if (m_lifeSpan == 0)
+		DeleteGO(this);
 }

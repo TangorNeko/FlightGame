@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Player.h"
-#include "Enemy.h"
+#include "IEnemy.h"
+#include "LaserEnemy.h"
 #include "Missile.h"
 #include "Blackhole.h"
 
@@ -14,13 +15,11 @@ void Player::OnDestroy()
 	if (m_frictionEffect != nullptr && m_frictionEffect->IsPlay() == true)
 		DeleteGO(m_frictionEffect);
 
-	/*
 	if (m_jetEffectRight != nullptr && m_jetEffectRight->IsPlay() == true)
 		DeleteGO(m_jetEffectRight);
 
 	if (m_jetEffectLeft != nullptr && m_jetEffectLeft->IsPlay() == true)
-		DeleteGO(m_jetEffectRight);
-		*/
+		DeleteGO(m_jetEffectLeft);
 
 
 }
@@ -67,14 +66,15 @@ bool Player::Start()
 void Player::PostUpdate()
 {
 	//照準の描画
-	CVector2 screenpos2d;
-	MainCamera().CalcScreenPositionFromWorldPosition(screenpos2d, m_position + m_moveDir * 10000);
-	CVector3 screenpos = { screenpos2d.x,screenpos2d.y,0.0f };
-	m_sightSpriteRender->SetPosition(screenpos);
-
+		CVector2 screenpos2d;
+		MainCamera().CalcScreenPositionFromWorldPosition(screenpos2d, m_position + m_moveDir * 10000);
+		CVector3 screenpos = { screenpos2d.x,screenpos2d.y,0.0f };
+		m_sightSpriteRender->SetPosition(screenpos);
 }
 void Player::Update()
 {
+	if (m_trackingMissileNum < 0)
+		m_trackingMissileNum = 0;
 	//スピード
 
 	m_fSpeed += Pad(0).GetRStickYF();
@@ -87,11 +87,17 @@ void Player::Update()
 
 	m_fuel -= m_fSpeed / 2000;
 
-	if (Pad(0).IsTrigger(enButtonX))
+	if (Pad(0).IsTrigger(enButtonX) && m_isTurning == false)
 	{
 		m_isTurning = true;
+		prefab::CEffect* chaff = NewGO<prefab::CEffect>(0);
+		chaff->Play(L"effect/Chaff.efk");
+		chaff->SetPosition(m_position);
+		chaff->SetScale({ 25.0f,25.0f,25.0f });
+		m_fSpeedBeforeTurn = m_fSpeed;
 	}
 
+	//インメルマンターンの動き
 	if (m_isTurning)
 	{
 		m_fSpeed = 50;
@@ -114,11 +120,12 @@ void Player::Update()
 		else
 		{
 			m_turnCount = 0;
+			m_fSpeed = m_fSpeedBeforeTurn;
 			m_isTurning = false;
 		}
 		m_turnCount++;
 	}
-	else
+	else //通常時の動き
 	{
 		if (m_fSpeed > 100)
 		{
@@ -154,10 +161,12 @@ void Player::Update()
 		}
 
 
+		/*
 		if (Pad(0).IsPress(enButtonLB2))
 		{
 			m_fSpeed *= 0;
 		}
+		*/
 
 
 		
@@ -183,15 +192,20 @@ void Player::Update()
 			m_z += 1.0;
 		
 
+		/*
 		if (Pad(0).GetLStickYF() > 0.5)
-			m_x--;
-		else if (Pad(0).GetLStickYF() < -0.5)
 			m_x++;
+		else if (Pad(0).GetLStickYF() < -0.5)
+			m_x--;
 
 		if (Pad(0).GetLStickXF() < -0.5)
 			m_z++;
 		else if (Pad(0).GetLStickXF() > 0.5)
 			m_z--;
+			*/
+
+		m_x += Pad(0).GetLStickYF();
+		m_z -= 1.5 * Pad(0).GetLStickXF();
 
 
 	}
@@ -229,35 +243,34 @@ void Player::Update()
 
 	if (m_sbEffectRight != nullptr)
 	{
-		m_sbEffectRight->SetPosition(m_position + m_rightDir * 7.5 + m_moveDir * -90 + m_upDir * 20);
+		m_sbEffectRight->SetPosition(m_position + m_rightDir * 7.5f + m_moveDir * -90 + m_upDir * 20);
 		m_sbEffectRight->SetRotation(m_rotation);
 	}
 
 	if (m_sbEffectLeft != nullptr)
 	{
-		m_sbEffectLeft->SetPosition(m_position + m_rightDir * -7.5 + m_moveDir * -90 + m_upDir * 20);
+		m_sbEffectLeft->SetPosition(m_position + m_rightDir * -7.5f + m_moveDir * -90 + m_upDir * 20);
 		m_sbEffectLeft->SetRotation(m_rotation);
 	}
 
 	if (m_jetEffectRight != nullptr)
 	{
-		m_jetEffectRight->SetPosition(m_position + m_rightDir * 7 + m_moveDir * -90 + m_upDir * 15);
+		m_jetEffectRight->SetPosition(m_position + m_rightDir * 5.5f + m_moveDir * -90 + m_upDir * 15);
 		m_jetEffectRight->SetRotation(m_rotation);
-		m_jetEffectRight->SetScale({ 5.0f,5.0f, 1 + m_fSpeed / 10 });
+		m_jetEffectRight->SetScale({ 5.0f,5.0f,1 + m_fSpeed / 10 });
 	}
 
 	if (m_jetEffectLeft != nullptr)
 	{
-		m_jetEffectLeft->SetPosition(m_position + m_rightDir * -7 + m_moveDir * -90 + m_upDir * 15);
+		m_jetEffectLeft->SetPosition(m_position + m_rightDir * -5.5f + m_moveDir * -90 + m_upDir * 15);
 		m_jetEffectLeft->SetRotation(m_rotation);
 		m_jetEffectLeft->SetScale({ 5.0f,5.0f,1 + m_fSpeed / 10 });
 	}
 
 	//ロックオン用の関数
-	Lockon();
-
+		Lockon();
 	
-	if (FindGO<Blackhole>("blackhole", false) == nullptr)
+	if (FindGO<Blackhole>("blackhole", false) == nullptr && m_isTurning == false)
 		m_sightSpriteRender->SetScale({ 1.0f,1.0f,1.0f });
 	else
 		m_sightSpriteRender->SetScale({ 0.0f,0.0f,0.0f });
@@ -265,7 +278,7 @@ void Player::Update()
 
 
 	//ミサイル発射用の関数
-	if (Pad(0).IsTrigger(enButtonB) && m_lockingEnemy != nullptr && m_lockingEnemy->m_isMortal == false &&m_shotcooldown <= 60)
+	if (Pad(0).IsTrigger(enButtonRB1) && m_lockingEnemy != nullptr && m_lockingEnemy->m_isMortal == false &&m_shotcooldown <= 60)
 	{
 		ShootMissile();
 		m_shotcooldown += 60;
@@ -276,7 +289,7 @@ void Player::Update()
 
 
 	//デバッグ用
-	std::wstring a = L"(仮)装弾数 = " + std::to_wstring((120 - m_shotcooldown) / 60) + L"\n(仮)燃料 = " + std::to_wstring(m_fuel) + L"\n(仮)スコア = " + std::to_wstring(m_score) + L"\n(仮)HP = " + std::to_wstring(m_hp) + L"\n(仮)スピード = " + std::to_wstring(m_fSpeed);
+	std::wstring a = L"(仮)装弾数 = " + std::to_wstring((120 - m_shotcooldown) / 60) + L"\n(仮)燃料 = " + std::to_wstring(m_fuel) + L"\n(仮)スコア = " + std::to_wstring(m_score) + L"\n(仮)HP = " + std::to_wstring(m_hp) + L"\n(仮)スピード = " + std::to_wstring(m_fSpeed) + L"\n(仮)追尾してきているミサイルの数 = " + std::to_wstring(m_trackingMissileNum);
 	m_fontRender->SetText(a.c_str());
 
 
@@ -296,7 +309,7 @@ void Player::Lockon()
 	const int lockondegree = 20;
 
 	//最高ロックオン可能距離より敵の位置までの距離が短いかつロックオン可能な角度内ならロックオン距離を更新する処理を繰り返す
-	QueryGOs<Enemy>("enemy", [&Lockonpos,lockondegree,this](Enemy* enemy)->bool
+	QueryGOs<IEnemy>("enemy", [&Lockonpos,lockondegree,this](IEnemy* enemy)->bool
 		{
 			//敵から自機への距離
 			CVector3 tmp1 = enemy->m_position - this->m_position,
@@ -322,7 +335,13 @@ void Player::Lockon()
 	CVector2 spritepos;
 
 	//ロックオンできているなら敵の位置にロックオンマーカーを表示する
-	if (Check.Length())
+	
+	if (m_isTurning)
+	{
+		m_lockonSpriteRender->SetScale(CVector3::Zero);
+		m_lockingEnemy = nullptr;
+	}
+	else if (Check.Length())
 	{
 		//dbg::DrawVector(Lockonpos - m_position, m_position, "locking");
 		MainCamera().CalcScreenPositionFromWorldPosition(spritepos, Lockonpos);

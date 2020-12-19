@@ -4,6 +4,10 @@
 #include "tkEngine/Light/tkPointLight.h"
 
 int Ring::s_ringNum = 0;
+int Ring::s_redRingStreak = 0;
+int Ring::s_blueRingStreak = 0;
+int Ring::s_alternateRingStreak = 0;
+int Ring::s_lastRingFlag = 0;
 
 void Ring::OnDestroy()
 {
@@ -70,12 +74,35 @@ void Ring::Update()
 		if (m_direction.Dot(player->m_moveDir) > 0.17)
 		{
 			player->m_score += 100;
+
+			//ミッション用変数に加算
+				s_redRingStreak++;
+				s_blueRingStreak = 0;
+
+			if (s_lastRingFlag == 2)
+				s_alternateRingStreak++;
+			else
+				s_alternateRingStreak = 1;
+
+			s_lastRingFlag = 1;
 			DeleteGO(this);
 		}
 		//青い面から通ったなら燃料を増加
 		if (-m_direction.Dot(player->m_moveDir) > 0.17)
 		{
 			player->m_fuel += 100;
+
+			//ミッション用変数に加算
+			if (s_redRingStreak > 1)
+				s_blueRingStreak++;
+				s_redRingStreak = 0;
+
+			if (s_lastRingFlag == 1)
+				s_alternateRingStreak++;
+			else
+				s_alternateRingStreak = 1;
+
+			s_lastRingFlag = 2;
 			DeleteGO(this);
 		}
 	}

@@ -2,7 +2,7 @@
  *@brief	main.cpp
  */
 #include "stdafx.h"
-#include "Title.h"
+#include "TitleScene.h"
 
 namespace {
 	/*!
@@ -139,7 +139,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
 	//エンジンを初期化。
 	if (Engine().Init(initParam) == true) {
-		NewGO<Title>(0, "title");
+		NewGO<TitleScene>(0, "title");
 		//ゲームループを実行。
 		Engine().RunGameLoop();
 	}

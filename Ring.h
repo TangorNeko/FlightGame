@@ -8,6 +8,10 @@ public:
 	bool Start();
 	void Update();
 	static int s_ringNum;
+	static int s_redRingStreak;
+	static int s_blueRingStreak;
+	static int s_alternateRingStreak;
+	static int s_lastRingFlag; //0A‰Šú 1AÔ 2AÂ
 
 	prefab::CSkinModelRender* m_skinModelRender = nullptr;
 	Player* player = nullptr;
