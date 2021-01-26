@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Space.h"
 #include "Player.h"
+#include "GameScene.h"
 
 void Space::OnDestroy()
 {
@@ -15,11 +16,17 @@ bool Space::Start()
 	space->SetScale(1000000.0f);
 
 	player = FindGO<Player>("player");
-	space->SetPosition(player->m_position);
+	m_position = player->m_position;
+	space->SetPosition(m_position);
+
+	gameScene = FindGO<GameScene>("gamescene");
 	return true;
 }
 
 void Space::Update()
 {
-	space->SetPosition(player->m_position);
+	if (gameScene->m_isPlayerDead == false)
+		m_position = player->m_position;
+
+	space->SetPosition(m_position);
 }

@@ -13,5 +13,9 @@ public:
 	SpaceDock* spacedock = nullptr;
 	prefab::CSky* space = nullptr;
 
+	bool m_sceneChangeFlag = false;
+
+	prefab::CSoundSource* m_titleBGM = nullptr;
+
 };
 

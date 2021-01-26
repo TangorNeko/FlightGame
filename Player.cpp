@@ -4,6 +4,11 @@
 #include "LaserEnemy.h"
 #include "Missile.h"
 #include "Blackhole.h"
+#include "SmokeGenerator.h"
+#include "GameScene.h"
+#include "EnemyGenerator.h"
+#include "GameOver.h"
+
 
 void Player::OnDestroy()
 {
@@ -11,6 +16,21 @@ void Player::OnDestroy()
 	DeleteGO(m_sightSpriteRender);
 	DeleteGO(m_lockonSpriteRender);
 	DeleteGO(m_fontRender);
+	DeleteGO(m_smokeGenerator);
+	DeleteGO(m_speedFontRender);
+	DeleteGO(m_speedSpriteBackRender);
+	DeleteGO(m_speedSpriteFrontRender);
+	DeleteGO(m_HPSpriteBackRender);
+	DeleteGO(m_HPSpriteFrontRender);
+	DeleteGO(m_FuelSpriteBackRender);
+	DeleteGO(m_FuelSpriteFrontRender);
+	DeleteGO(m_controlSpriteRender);
+	DeleteGO(m_missionPanelRender);
+
+	DeleteGO(m_missileTrackingSpriteRender);
+
+
+	DeleteGO(m_engineSound);
 
 	if (m_frictionEffect != nullptr && m_frictionEffect->IsPlay() == true)
 		DeleteGO(m_frictionEffect);
@@ -21,13 +41,11 @@ void Player::OnDestroy()
 	if (m_jetEffectLeft != nullptr && m_jetEffectLeft->IsPlay() == true)
 		DeleteGO(m_jetEffectLeft);
 
-
+	m_gameScene->m_isPlayerDead = true;
 }
 
 bool Player::Start()
 {
-	
-
 	//プレイヤーのモデルを作成
 	m_skinModelRender = NewGO<prefab::CSkinModelRender>(0);
 	m_skinModelRender->Init(L"modelData/Vehicle.cmo");
@@ -39,14 +57,11 @@ bool Player::Start()
 	m_skinModelRender->FindMaterial([&](auto material) {
 		material->SetSpecularMap(m_specSRV.GetBody());
 	});
-	//照準のスプライトを作成
-	m_sightSpriteRender = NewGO<prefab::CSpriteRender>(0);
-	m_sightSpriteRender->Init(L"sprite/Sight.dds", 32, 32);
+
 
 	//ロックオンマーカーのスプライトを作成
 	m_lockonSpriteRender = NewGO<prefab::CSpriteRender>(0);
 	m_lockonSpriteRender->Init(L"sprite/Lockon.dds", 256, 256);
-
 
 	//ジェットエフェクト
 	m_jetEffectRight = NewGO<prefab::CEffect > (0);
@@ -61,6 +76,74 @@ bool Player::Start()
 	m_fontRender->SetScale(0.5f);
 	m_fontRender->SetPosition({ -600.0f,250.0f });
 
+	//操作パネルを表示
+	m_controlSpriteRender = NewGO<prefab::CSpriteRender>(0);
+	m_controlSpriteRender->Init(L"sprite/HFControl.dds",230.0f,45.0f);
+	m_controlSpriteRender->SetPosition({ -500.0f,250.0f,0.0f });
+
+	//HPを表示
+	m_HPSpriteBackRender = NewGO<prefab::CSpriteRender>(0);
+	m_HPSpriteBackRender->Init(L"sprite/HFHPUI_Back.dds",455.0f,44.0f);
+	m_HPSpriteBackRender->SetPosition({ -625.0f,330.0f,0.0f });
+	m_HPSpriteBackRender->SetPivot({ 0.0f, 0.5f });
+
+	m_HPSpriteFrontRender = NewGO<prefab::CSpriteRender>(0);
+	m_HPSpriteFrontRender->Init(L"sprite/HFHPUI_Front.dds",455.0f,44.0f);
+	m_HPSpriteFrontRender->SetPosition({ -621.0f,330.0f,0.0f });
+	m_HPSpriteFrontRender->SetPivot({ 0.01f, 0.5f });
+
+	//燃料を表示
+	m_FuelSpriteBackRender = NewGO<prefab::CSpriteRender>(0);
+	m_FuelSpriteBackRender->Init(L"sprite/HFFuelUI_Back.dds", 455.0f, 33.0f);
+	m_FuelSpriteBackRender->SetPosition({ -625.0f,295.0f,0.0f });
+	m_FuelSpriteBackRender->SetPivot({ 0.0f,0.5f });
+
+	m_FuelSpriteFrontRender = NewGO<prefab::CSpriteRender>(0);
+	m_FuelSpriteFrontRender->Init(L"sprite/HFFuelUI_Front.dds", 455.0f, 33.0f);
+	m_FuelSpriteFrontRender->SetPosition({ -621.0f,295.0f,0.0f });
+	m_FuelSpriteFrontRender->SetPivot({ 0.01f,0.5f });
+
+	//スピードを表示
+	m_speedSpriteBackRender = NewGO<prefab::CSpriteRender>(0);
+	m_speedSpriteBackRender->Init(L"sprite/SpeedMeterBack.dds",275,275);
+	m_speedSpriteBackRender->SetPosition({ 568.0f,-225.0f,0.0f });
+
+	m_speedSpriteFrontRender = NewGO<prefab::CSpriteRender>(0);
+	m_speedSpriteFrontRender->Init(L"sprite/SpeedMeterFront.dds", 275, 275);
+	m_speedSpriteFrontRender->SetPosition({ 568.0f,-225.0f,0.0f });
+
+	m_speedFontRender = NewGO<prefab::CFontRender>(0);
+	m_speedString = std::to_wstring(int(m_fSpeed));
+	m_speedFontRender->SetText(m_speedString.c_str());
+	m_speedFontRender->SetScale(0.75f);
+	m_speedFontRender->SetPivot({ 0.5f,0.5f });
+	m_speedFontRender->SetPosition({ 595.0f,-155.0f });
+
+	//ミッションパネルを表示
+	m_missionPanelRender = NewGO<prefab::CSpriteRender>(0);
+	m_missionPanelRender->Init(L"sprite/Missions/MissionPanel.dds", 300, 250);
+	m_missionPanelRender->SetPosition({ -490.0f,-235.0f,0.0f });
+	
+	//ミサイル警告のスプライト
+	m_missileTrackingSpriteRender = NewGO<prefab::CSpriteRender>(0);
+	m_missileTrackingSpriteRender->Init(L"sprite/MissileTrackingWarning.dds",1280,720);
+	m_missileTrackingSpriteRender->SetScale(CVector3::Zero);
+
+	//煙を生成
+	m_smokeGenerator = NewGO<SmokeGenerator>(0, "smokeganerator");
+
+	//照準のスプライトを作成
+	m_sightSpriteRender = NewGO<prefab::CSpriteRender>(1);
+	m_sightSpriteRender->Init(L"sprite/Sight.dds", 32, 32);
+	m_sightSpriteRender->SetScale(CVector3::Zero);
+
+
+	m_gameScene = FindGO<GameScene>("gamescene");
+
+	//エンジン音
+	m_engineSound = NewGO<prefab::CSoundSource>(0);
+	m_engineSound->Init(L"sound/Engine.wav");
+	m_engineSound->Play(true);
 	return true;
 }
 void Player::PostUpdate()
@@ -75,32 +158,110 @@ void Player::Update()
 {
 	if (m_trackingMissileNum < 0)
 		m_trackingMissileNum = 0;
-	//スピード
 
+	//ミッションパネルの移動
+	if (m_gameScene->m_gameTimer > 10500)
+	{
+
+		m_missionPanelRender->SetPosition({ -490.0f,-235.0f - 2 * (m_gameScene->m_gameTimer - 10500),0.0f });
+	}
+
+	//HPゲージの変化
+	m_HPSpriteFrontRender->SetScale({ m_hp / 500.0f,1.0f,1.0f });
+
+	//スピードの表示
 	m_fSpeed += Pad(0).GetRStickYF();
 
-	if (m_fSpeed < 20)
-		m_fSpeed = 20;
+	if (m_fSpeed < 30)
+		m_fSpeed = 30;
 
 	if (m_fSpeed > 150)
 		m_fSpeed = 150;
 
-	m_fuel -= m_fSpeed / 2000;
+	m_fuel -= m_fSpeed / 500;
 
-	if (Pad(0).IsTrigger(enButtonX) && m_isTurning == false)
+	if (m_fuel < 0)
 	{
-		m_isTurning = true;
-		prefab::CEffect* chaff = NewGO<prefab::CEffect>(0);
-		chaff->Play(L"effect/Chaff.efk");
-		chaff->SetPosition(m_position);
-		chaff->SetScale({ 25.0f,25.0f,25.0f });
-		m_fSpeedBeforeTurn = m_fSpeed;
+		m_fuel = 0;
+		m_fSpeed = 30;
+	}
+
+	CQuaternion speedSpriteRot;
+	speedSpriteRot.SetRotationDeg(CVector3::AxisZ, -12 - (156 * (m_fSpeed-30)/120));
+
+	m_speedSpriteFrontRender->SetRotation(speedSpriteRot);
+
+	m_speedString = std::to_wstring(int(m_fSpeed));
+	m_speedFontRender->SetText(m_speedString.c_str());
+
+	if (m_fSpeed < 40)
+	{
+		m_speedFontRender->SetColor({ 0.0f,0.0f,1.0f,1.0f });
+	}
+	else if (m_fSpeed > 100)
+	{
+		m_speedFontRender->SetColor({ 1.0f,1.0f,0.0f,1.0f });
+	}
+	else
+	{
+		m_speedFontRender->SetColor({ 0.0f,1.0f,0.0f,1.0f });
+	}
+
+	//エンジン音をスピードに応じて変化させる。
+	m_engineSound->SetFrequencyRatio(max(0.5f,m_fSpeed / 500.0f + 0.3f));
+	m_engineSound->SetVolume(max(0.1f, m_fSpeed / 300.0f));
+
+	//燃料ゲージの変化
+	m_FuelSpriteFrontRender->SetScale({ min(m_fuel / 1000,1),1.0f,1.0f });
+
+	//ミサイル追尾警告
+	if (m_trackingMissileNum > 0 && m_isTurning == false)
+	{
+		m_missileTrackingSpriteRender->SetScale(CVector3::One);
+
+		if (m_missileEngageSoundFlag == false)
+		{
+			m_missileEngageSound = NewGO<prefab::CSoundSource>(0);
+			m_missileEngageSound->Init(L"sound/MissileEngage.wav");
+			m_missileEngageSound->SetVolume(0.2f);
+			m_missileEngageSound->SetFrequencyRatio(2.0f);
+			m_missileEngageSound->Play(true);
+
+			m_missileEngageSoundFlag = true;
+		}
+	}
+	else
+	{
+		m_missileTrackingSpriteRender->SetScale(CVector3::Zero);
+
+		if (m_missileEngageSoundFlag == true)
+		{
+			DeleteGO(m_missileEngageSound);
+
+			m_missileEngageSoundFlag = false;
+		}
+	}
+
+	if (m_gameScene->m_isBlackholePhase == false)
+	{
+		if (Pad(0).IsTrigger(enButtonX) && m_isTurning == false)
+		{
+			m_isTurning = true;
+			prefab::CEffect* chaff = NewGO<prefab::CEffect>(0);
+			chaff->SetPosition(m_position);
+			chaff->Play(L"effect/Chaff.efk");
+			chaff->SetScale({ 25.0f,25.0f,25.0f });
+			//m_fSpeedBeforeTurn = m_fSpeed;
+		}
 	}
 
 	//インメルマンターンの動き
 	if (m_isTurning)
 	{
-		m_fSpeed = 50;
+		if (m_gameScene->m_isBlackholePhase == true)
+		{
+			m_isTurning = false;
+		}
 
 		if (m_isBoosting == true)
 		{
@@ -108,19 +269,20 @@ void Player::Update()
 			m_frictionEffect = nullptr;
 		}
 		m_isBoosting = false;
+		
 
 		if (m_turnCount < 90)
 		{
 			m_x -= 2.0f;
 		}
-		else if(m_turnCount < 180)
+		else if(m_turnCount < 135)
 		{
-			m_z += 2.0f;
+			m_z += 4.0f;
 		}
 		else
 		{
 			m_turnCount = 0;
-			m_fSpeed = m_fSpeedBeforeTurn;
+			//m_fSpeed = m_fSpeedBeforeTurn;
 			m_isTurning = false;
 		}
 		m_turnCount++;
@@ -134,7 +296,7 @@ void Player::Update()
 			if (m_isBoosting == false) {
 
 				m_frictionEffect = NewGO<prefab::CEffect>(0);
-				m_frictionEffect->Play(L"effect/Drill2.efk");
+				m_frictionEffect->Play(L"effect/Friction.efk");
 				m_frictionEffect->SetScale({ 10.0f,10.0f,10.0f });
 
 
@@ -146,6 +308,11 @@ void Player::Update()
 				m_sbEffectLeft = NewGO<prefab::CEffect>(0);
 				m_sbEffectLeft->Play(L"effect/Sonicboom.efk");
 				m_sbEffectLeft->SetScale({ 2.5f,2.5f,5.0f });
+
+				prefab::CSoundSource* boostSound = NewGO<prefab::CSoundSource>(0);
+				boostSound->Init(L"sound/Boost.wav");
+				boostSound->SetVolume(0.5f);
+				boostSound->Play(false);
 			}
 
 			m_isBoosting = true;
@@ -170,43 +337,45 @@ void Player::Update()
 
 
 		
-		//入力に応じて角度を変える
-		if (Pad(0).IsPress(enButtonDown))
-			m_x -= 1.0;
+		if (m_gameScene->m_isBlackholePhase == false)
+		{
+			//入力に応じて角度を変える
+			if (Pad(0).IsPress(enButtonDown))
+				m_x -= 1.0;
 
-		if (Pad(0).IsPress(enButtonUp))
-			m_x += 1.0;
+			if (Pad(0).IsPress(enButtonUp))
+				m_x += 1.0;
 
-		/*
-		if (Pad(0).IsPress(enButtonA))
-			m_y--;
+			/*
+			if (Pad(0).IsPress(enButtonA))
+				m_y--;
 
-		if (Pad(0).IsPress(enButtonB))
-			m_y++;
-		*/
-
-		if (Pad(0).IsPress(enButtonRight))
-			m_z -= 1.0;
-
-		if (Pad(0).IsPress(enButtonLeft))
-			m_z += 1.0;
-		
-
-		/*
-		if (Pad(0).GetLStickYF() > 0.5)
-			m_x++;
-		else if (Pad(0).GetLStickYF() < -0.5)
-			m_x--;
-
-		if (Pad(0).GetLStickXF() < -0.5)
-			m_z++;
-		else if (Pad(0).GetLStickXF() > 0.5)
-			m_z--;
+			if (Pad(0).IsPress(enButtonB))
+				m_y++;
 			*/
 
-		m_x += Pad(0).GetLStickYF();
-		m_z -= 1.5 * Pad(0).GetLStickXF();
+			if (Pad(0).IsPress(enButtonRight))
+				m_z -= 1.0;
 
+			if (Pad(0).IsPress(enButtonLeft))
+				m_z += 1.0;
+
+
+			/*
+			if (Pad(0).GetLStickYF() > 0.5)
+				m_x++;
+			else if (Pad(0).GetLStickYF() < -0.5)
+				m_x--;
+
+			if (Pad(0).GetLStickXF() < -0.5)
+				m_z++;
+			else if (Pad(0).GetLStickXF() > 0.5)
+				m_z--;
+				*/
+
+			m_x += Pad(0).GetLStickYF();
+			m_z -= 1.5 * Pad(0).GetLStickXF();
+		}
 
 	}
 
@@ -268,12 +437,22 @@ void Player::Update()
 	}
 
 	//ロックオン用の関数
+	if (m_gameScene->m_isBlackholePhase == true)
+		m_maxLockonDistance = 0.0f;
+	else
+		m_maxLockonDistance = 40000.0f;
+
 		Lockon();
 	
-	if (FindGO<Blackhole>("blackhole", false) == nullptr && m_isTurning == false)
-		m_sightSpriteRender->SetScale({ 1.0f,1.0f,1.0f });
+	if (m_isTurning == false)
+		m_sightSpriteRender->SetScale(CVector3::One);
 	else
-		m_sightSpriteRender->SetScale({ 0.0f,0.0f,0.0f });
+		m_sightSpriteRender->SetScale(CVector3::Zero);
+
+	if (FindGO<Blackhole>("blackhole", false) != nullptr)
+	{
+		m_sightSpriteRender->SetScale(CVector3::Zero);
+	}
 	
 
 
@@ -289,15 +468,68 @@ void Player::Update()
 
 
 	//デバッグ用
-	std::wstring a = L"(仮)装弾数 = " + std::to_wstring((120 - m_shotcooldown) / 60) + L"\n(仮)燃料 = " + std::to_wstring(m_fuel) + L"\n(仮)スコア = " + std::to_wstring(m_score) + L"\n(仮)HP = " + std::to_wstring(m_hp) + L"\n(仮)スピード = " + std::to_wstring(m_fSpeed) + L"\n(仮)追尾してきているミサイルの数 = " + std::to_wstring(m_trackingMissileNum);
+	/*
+	std::wstring a = L"Missile = " + std::to_wstring((120 - m_shotcooldown) / 60) + L"\nFUEL = " + std::to_wstring(m_fuel) + L"\nHP = " + std::to_wstring(m_hp) + L"\nSpeed = " + std::to_wstring(m_fSpeed) + L"\nLocked = " + std::to_wstring(m_trackingMissileNum);
 	m_fontRender->SetText(a.c_str());
-
+	*/
+	
 
 	m_skinModelRender->SetRotation(m_rotation);
 	m_skinModelRender->SetPosition(m_position);
 
 	//そのフレームごとの移動量を使うので毎フレーム0にする
 	m_x = m_y = m_z = 0;
+
+	//ミッション用
+	if (m_fSpeed > 149)
+	{
+		m_highSpeedCount++;
+	}
+	else
+	{
+		m_highSpeedCount = 0;
+	}
+
+	if (m_fSpeed < 31)
+	{
+		m_lowSpeedCount++;
+	}
+	else
+	{
+		m_lowSpeedCount = 0;
+	}
+
+	if (m_oldHp == m_hp)
+	{
+		m_damageCount++;
+	}
+	else
+	{
+		m_damageCount = 0;
+	}
+
+	//HPが0になった時削除する
+	if (m_hp <= 0)
+	{
+		prefab::CEffect* deadEffect = NewGO<prefab::CEffect>(0);
+		deadEffect->SetPosition(m_position + MainCamera().GetForward() * 100);
+		deadEffect->SetScale({ 100.0f,100.0f,100.0f });
+		deadEffect->Play(L"effect/Explosion.efk");
+
+		prefab::CSoundSource* explosionSound = NewGO<prefab::CSoundSource>(0);
+		explosionSound->Init(L"sound/Boom2.wav");
+		explosionSound->SetVolume(0.4f);
+		explosionSound->Play(false);
+
+		NewGO<GameOver>(0, "gameover");
+
+		if (m_missileEngageSoundFlag)
+			DeleteGO(m_missileEngageSound);
+
+		DeleteGO(this);
+	}
+
+	m_oldHp = m_hp;
 }
 
 void Player::Lockon()
@@ -353,6 +585,14 @@ void Player::Lockon()
 		//距離に応じてロックオンマーカーの大きさを変更
 		m_lockonSpriteRender->SetScale({ 50 / (distance.Length() / 100) ,50 / (distance.Length() / 100) ,50 / (distance.Length() / 100) });
 		m_lockonSpriteRender->SetScale({1.0f,1.0f,1.0f });
+
+		if (m_lockingEnemy != m_oldLockingEnemy)
+		{
+			m_lockonSound = NewGO<prefab::CSoundSource>(0);
+			m_lockonSound->Init(L"sound/Lock.wav");
+			m_lockonSound->SetVolume(0.5f);
+			m_lockonSound->Play(false);
+		}
 	}
 	//できていないならロックオンマーカーを非表示に
 	else
@@ -360,6 +600,8 @@ void Player::Lockon()
 		m_lockonSpriteRender->SetScale(CVector3::Zero);
 		m_lockingEnemy = nullptr;
 	}
+
+	m_oldLockingEnemy = m_lockingEnemy;
 }
 
 void Player::ShootMissile()
@@ -378,10 +620,18 @@ void Player::ShootMissile()
 		m_isMissileRight = true;
 	}
 
-	missile->m_fSpeed = max(1,m_fSpeed - 30);
+	m_missileShotSound = NewGO<prefab::CSoundSource>(0);
+	m_missileShotSound->Init(L"sound/Missile.wav");
+	m_missileShotSound->SetVolume(0.3f);
+	m_missileShotSound->Play(false);
+
+	missile->m_fSpeed = max(10,m_fSpeed - 30);
 
 	//ミサイルに追尾先の敵を教える
 	missile->m_trackingEnemy = m_lockingEnemy;
 	//撃った瞬間相手に死にゆく定めを付与する
 	m_lockingEnemy->m_isMortal = true;
+
+	//ミッション用
+	m_shootMissileNum++;
 }

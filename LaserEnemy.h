@@ -1,6 +1,7 @@
 #pragma once
 #include "IEnemy.h"
 class Player;
+class GameScene;
 
 class LaserEnemy : public IEnemy
 {
@@ -15,7 +16,6 @@ public:
 	int m_movecount = 0;
 
 	CVector3 laserpos;
-	CVector3 m_moveDir,m_rightDir,m_upDir,m_oldMoveDir;
 	prefab::CEffect* m_effect = nullptr;
 	float degx, degy, odegx = 0, odegy = 0;
 	float laserdegx, laserdegy, laserodegx = 0, laserodegy = 0;
@@ -24,6 +24,12 @@ public:
 	bool m_movingRight = true;
 	bool m_movingUp;
 
+	//‰¹
+	prefab::CSoundSource* m_beamSound = nullptr;
+	
+	GameScene* m_gameScene = nullptr;
+
+	bool m_isFirstContact = true;
 	bool m_isDeleted = true;
 	int m_damageCount = 0;
 };

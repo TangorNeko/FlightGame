@@ -1,5 +1,6 @@
 #pragma once
 class IEnemy;
+class GameScoreManager;
 
 class Missile : public IGameObject
 {
@@ -18,5 +19,7 @@ public:
 	float m_fSpeed = 10;
 
 	float odegx = 0, odegy = 0;
+
+	GameScoreManager* m_gamescoremanager = nullptr;
 };
 

@@ -1,5 +1,6 @@
 #pragma once
 class Player;
+class GameScoreManager;
 
 class Ring : public IGameObject
 {
@@ -14,7 +15,10 @@ public:
 	static int s_lastRingFlag; //0A‰Šú 1AÔ 2AÂ
 
 	prefab::CSkinModelRender* m_skinModelRender = nullptr;
+	prefab::CSkinModelRender* m_fuelPanelRender = nullptr;
+	prefab::CSkinModelRender* m_scorePanelRender = nullptr;
 	Player* player = nullptr;
+	GameScoreManager* gamescoremanager = nullptr;
 
 	CVector3 m_position;
 	CVector3 m_direction;

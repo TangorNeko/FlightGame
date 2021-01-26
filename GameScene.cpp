@@ -13,12 +13,19 @@
 #include "EnemyMissile.h"
 #include "EnemyGenerator.h"
 #include "Mission.h"
+#include "SmokeGenerator.h"
+#include "GameScoreManager.h"
 #include "tkEngine/light/tkDirectionLight.h"
 #include <random>
 
 
 void GameScene::OnDestroy()
 {
+	DeleteGO(m_fontRender);
+
+	GameScoreManager* gameScoreManager = FindGO<GameScoreManager>("gamescoremanager");
+	DeleteGO(gameScoreManager);
+
 	Space* space = FindGO<Space>("space");
 	DeleteGO(space);
 
@@ -32,34 +39,38 @@ void GameScene::OnDestroy()
 		return true;
 		});
 
-	
-	//DeleteGO(blackhole);
+	if(m_isBlackholePhase == true)
+		DeleteGO(blackhole);
 
 	//ブラックホール生成時に消してる
 	RingGenerator* ringgenerator = FindGO<RingGenerator>("ringgenerator",false);
 	if (ringgenerator != nullptr)
-	DeleteGO(ringgenerator);
+		DeleteGO(ringgenerator);
 	
-
-	DeleteGO(enemygenerator);
 	//敵の削除のタイミングは要検討
-	/*
+	
+	EnemyGenerator* enemygenerator = FindGO<EnemyGenerator>("enemygenarator", false);
+	if (enemygenerator != nullptr)
+	{
+		DeleteGO(enemygenerator);
+	}
+	
+	
 	QueryGOs<IEnemy>("enemy", [](IEnemy* enemy)->bool {
 		DeleteGO(enemy);
 		return true;
 		});
-		*/
 
-
-	//BackGround* background = FindGO<BackGround>("background");
-	//DeleteGO(background);
-
-	DeleteGO(player);
+	
+	if(m_isPlayerDead == false)
+		DeleteGO(player);
 
 	GameCamera* gamecamera = FindGO<GameCamera>("gamecamera");
 	DeleteGO(gamecamera);
 
 	DeleteGOs("DirectionLight");
+
+	DeleteGO(m_gameBGM);
 }
 
 bool GameScene::Start()
@@ -71,7 +82,7 @@ bool GameScene::Start()
 	CVector3 dir = { 1.0f, 0.0f, 0.0f };
 
 	light->SetDirection(dir);
-	light->SetColor({2.0f, 1.0f, 1.0f, 1.0f});
+	light->SetColor({ 2.0f, 1.0f, 1.0f, 1.0f });
 
 	//
 	light = NewGO<prefab::CDirectionLight>(0, "DirectionLight");
@@ -92,85 +103,118 @@ bool GameScene::Start()
 	light->SetDirection(dir);
 	light->SetColor({ 2.0f, 1.0f, 1.0f, 1.0f });
 
-	LightManager().SetAmbientLight({ 0.5f, 0.5f, 0.5f });
+	LightManager().SetAmbientLight({ 0.2f, 0.2f, 0.2f });
 
 	NewGO<GameCamera>(1, "gamecamera");
 
-	shadow::DirectionShadowMap().SetLightDirection({1.0f, 0.0f, 0.0f});
+	shadow::DirectionShadowMap().SetLightDirection({ 1.0f, 0.0f, 0.0f });
+
 	player = NewGO<Player>(0, "player");
 
-	//NewGO<BackGround>(0, "background");
-
-
 	//敵をいっぱい作る
-	enemygenerator = NewGO<EnemyGenerator>(0, "enemygenerator");
-	/*
-	LaserEnemy* lenemy = nullptr;
-	lenemy = NewGO<LaserEnemy>(0, "enemy");
-	lenemy->m_position = { 0,0000,50000 };
-	lenemy = NewGO<LaserEnemy>(0, "enemy");
-	lenemy->m_position = { 2000,1000,65000 };
-	lenemy = NewGO<LaserEnemy>(0, "enemy");
-	lenemy->m_position = { 10000,1000,61000 };
-	lenemy = NewGO<LaserEnemy>(0, "enemy");
-	lenemy->m_position = { -10000,1000,64000 };
-	lenemy = NewGO<LaserEnemy>(0, "enemy");
-	lenemy->m_position = { 11000,1000,64000 };
-
-	
-	MissileEnemy* menemy = nullptr;
-	menemy = NewGO<MissileEnemy>(0, "enemy");
-	menemy->m_position = { 3000,2000,36000 };
-	*/
+	NewGO<EnemyGenerator>(0, "enemygenerator");
 
 	NewGO<RingGenerator>(0, "ringgenerator");
 
-	
-	//blackhole = NewGO<Blackhole>(0, "blackhole");
-	//blackhole->m_position = { 5000.0f,200.0f,500.0f };
-
 	NewGO<Space>(0, "space");
+
+	NewGO<GameScoreManager>(0, "gamescoremanager");
+
+	m_fontRender = NewGO<prefab::CFontRender>(0);
+
+	//BGM再生
+	m_gameBGM = NewGO<prefab::CSoundSource>(0, "bgm");
+	m_gameBGM->Init(L"sound/Space_Travel.wav");
+	m_gameBGM->SetVolume(0.25f);
+	//m_gameBGM->Play(true);
+
+	m_warningSpriteUp = NewGO<prefab::CSpriteRender>(3);
+	m_warningSpriteUp->Init(L"sprite/WarningUp.dds", 2560, 720);
+	m_warningSpriteUp->SetPosition({ 2560.0f,0.0f,0.0f });
+
+	m_warningSpriteDown = NewGO<prefab::CSpriteRender>(3);
+	m_warningSpriteDown->Init(L"sprite/WarningDown.dds", 2560, 720);
+	m_warningSpriteDown->SetPosition({-2560.0f, 0.0f, 0.0f});
+
+
 
 	return true;
 }
 
 void GameScene::Update()
 {
-
-	//Aボタンでリセット
-	if (Pad(0).IsTrigger(enButtonA))
+	//Selectボタン,Spaceキーでリセット
+	if (Pad(0).IsTrigger(enButtonSelect) || m_isGameEnd == true)
 	{
 		NewGO<TitleScene>(0, "titlescene");
 		DeleteGO(this);
 	}
 
+	if (m_gameTimer > 10500)
+	{
+		m_warningCount += 15;
+
+		m_warningSpriteUp->SetPosition({ 2560.0f - m_warningCount,0.0f,0.0f });
+		m_warningSpriteDown->SetPosition({ -2560.0f + m_warningCount,0.0f,0.0f });
+	}
 	
-	if (Pad(0).IsTrigger(enButtonRB2))
+	if (m_gameTimer == 10500 && m_isPlayerDead == false)
+	{
+		prefab::CSoundSource* warningSound = NewGO<prefab::CSoundSource>(0);
+		warningSound->Init(L"sound/Warning.wav");
+		warningSound->SetVolume(5.0f);
+		warningSound->Play(false);
+	}
+
+	if (Pad(0).IsTrigger(enButtonStart) || m_gameTimer == 10800 && m_isPlayerDead == false)
 	{
 		blackhole = NewGO<Blackhole>(0, "blackhole");
 		blackhole->m_position = { player->m_position - player->m_moveDir * 10000 };
+		m_isBlackholePhase = true;
+
+		DeleteGO(m_gameBGM);
+		m_gameBGM = NewGO<prefab::CSoundSource>(0, "bgm");
+		m_gameBGM->Init(L"sound/Blackhole.wav");
+		m_gameBGM->SetVolume(0.25f);
+		//m_gameBGM->Play(true);
+
+		m_fontRender->SetScale(0.0f);
 	}
 	
 
-	if (m_gameTimer > 300)
+	
+	//ゲーム時間300から5400の間だけミッション発生
+	if (300 < m_gameTimer && m_gameTimer < 10200)
 	{
 		std::random_device seed_gen;
 		std::mt19937_64 rnd(seed_gen());
-		if (rnd() % 1000 == 777 && m_isOnMission == false)
+		if (rnd() % 100 == 77 && m_isOnMission == false)
 		{
 			m_mission = NewGO<Mission>(0, "mission");
 			m_isOnMission = true;
 		}
+	}
 	
-		if (m_isOnMission == true && m_mission->m_isMissionEnd)
-		{
-			DeleteGO(m_mission);
-			m_mission = nullptr;
-			m_isOnMission = false;
-		}
+	//ミッション終了を受け取りミッションを削除する
+	if (m_isOnMission == true && (m_mission->m_isMissionEnd || m_isPlayerDead == true || m_gameTimer  == 10200))
+	{
+		DeleteGO(m_mission);
+		m_mission = nullptr;
+		m_isOnMission = false;
 	}
 
 
+
+	//ブラックホール発生までの残り時間の表示
+	int remainTime = (10800 - m_gameTimer) / 60;
+	if (remainTime < 0)
+		remainTime = 0;
+
+	std::wstring remainTimeText = std::to_wstring(remainTime) ;
+	m_fontRender->SetText(remainTimeText.c_str());
+	m_fontRender->SetPivot({0.5f,0.5f});
+	m_fontRender->SetPosition({ 0.0f,300.0f });
+	m_fontRender->SetShadowParam(true, 1.0f, { 0.0f,0.0f,0.5f,1.0f });
+
 	m_gameTimer++;
-	//ポーズ機能とかつけたい
 }

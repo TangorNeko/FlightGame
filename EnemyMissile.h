@@ -22,5 +22,11 @@ public:
 	int m_lifeSpan = 900;
 
 	float odegx = 0, odegy = 0;
+
+	//音
+	prefab::CSoundSource* m_explosionSound = nullptr;
+
+	//ミッション用
+	static int s_missileAvoidNum;
 };
 

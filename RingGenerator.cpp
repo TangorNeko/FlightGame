@@ -2,6 +2,7 @@
 #include "RingGenerator.h"
 #include "Ring.h"
 #include "Player.h"
+#include "GameScene.h"
 #include <random>
 
 void RingGenerator::OnDestroy()
@@ -15,19 +16,20 @@ void RingGenerator::OnDestroy()
 
 bool RingGenerator::Start()
 {
-	player = FindGO<Player>("player");
+	m_player = FindGO<Player>("player");
+	m_gameScene = FindGO<GameScene>("gamescene");
 
-	for (int i = 0;i < 200;i++)
+	for (int i = 0;i < 100;i++)
 	{
-		ring = NewGO<Ring>(0, "ring");
+		m_ring = NewGO<Ring>(0, "ring");
 		std::random_device seed_gen;
 		std::mt19937_64 rnd(seed_gen());
-		ring->m_x = rnd() % 360;
-		ring->m_y = rnd() % 360;
+		m_ring->m_x = rnd() % 360;
+		m_ring->m_y = rnd() % 360;
 		int x = rnd() % 100000, y = rnd() % 100000, z = rnd() % 100000;
-		ring->m_position = {player->m_position.x -50000 + static_cast<float>(x),
-							player->m_position.y -50000 + static_cast<float>(y),
-							player->m_position.z -50000 + static_cast<float>(z) };
+		m_ring->m_position = { m_ring->m_position.x -50000 + static_cast<float>(x),
+							m_ring->m_position.y -50000 + static_cast<float>(y),
+							m_ring->m_position.z -50000 + static_cast<float>(z) };
 	}
 
 	return true;
@@ -35,16 +37,19 @@ bool RingGenerator::Start()
 
 void RingGenerator::Update()
 {
-	if (Ring::s_ringNum < 200)
+	if (m_gameScene->m_isPlayerDead == false)
 	{
-		ring = NewGO<Ring>(0, "ring");
-		std::random_device seed_gen;
-		std::mt19937_64 rnd(seed_gen());
-		ring->m_x = rnd() % 360;
-		ring->m_y = rnd() % 360;
-		int x = rnd() % 100000, y = rnd() % 100000, z = rnd() % 100000;
-		ring->m_position = {player->m_position.x -50000 + static_cast<float>(x),
-							player->m_position.y -50000 + static_cast<float>(y),
-							player->m_position.z -50000 + static_cast<float>(z) };
+		if (Ring::s_ringNum < 100)
+		{
+			m_ring = NewGO<Ring>(0, "ring");
+			std::random_device seed_gen;
+			std::mt19937_64 rnd(seed_gen());
+			m_ring->m_x = rnd() % 360;
+			m_ring->m_y = rnd() % 360;
+			int x = rnd() % 100000, y = rnd() % 100000, z = rnd() % 100000;
+			m_ring->m_position = { m_player->m_position.x - 50000 + static_cast<float>(x),
+								m_player->m_position.y - 50000 + static_cast<float>(y),
+								m_player->m_position.z - 50000 + static_cast<float>(z) };
+		}
 	}
 }

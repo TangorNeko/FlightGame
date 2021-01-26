@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "EnemyMissile.h"
 #include "Player.h"
+#include <random>
+
+int EnemyMissile::s_missileAvoidNum = 0;
 
 void EnemyMissile::OnDestroy()
 {
@@ -13,8 +16,9 @@ void EnemyMissile::OnDestroy()
 bool EnemyMissile::Start()
 {
 	m_skinModelRender = NewGO<prefab::CSkinModelRender>(0);
-	m_skinModelRender->Init(L"modelData/MissileTest.cmo");
+	m_skinModelRender->Init(L"modelData/Missile.cmo");
 	m_effect2 = NewGO<prefab::CEffect>(0);
+	m_effect2->Play(L"effect/Missile.efk");
 	m_skinModelRender->SetScale({1.5f,1.5f,1.5f });
 
 	m_trackingPlayer = FindGO<Player>("player");
@@ -28,10 +32,15 @@ bool EnemyMissile::Start()
 
 void EnemyMissile::Update()
 {
+	if (m_trackingPlayer == nullptr)
+	{
+		DeleteGO(this);
+	}
+
 
 	if (m_effect2->IsPlay() == false)
 	{
-		m_effect2->Play(L"effect/Missile3.efk");
+		m_effect2->Play(L"effect/Missile.efk");
 	}
 
 	//敵を追尾する
@@ -43,6 +52,9 @@ void EnemyMissile::Update()
 	{
 		m_isRocking = false;
 		m_trackingPlayer->m_trackingMissileNum--;
+
+		//ミッション用
+		s_missileAvoidNum++;
 	}
 
 	if (m_isRocking == false)
@@ -95,10 +107,28 @@ void EnemyMissile::Update()
 	if (diff.Length() < 200)
 	{
 		prefab::CEffect* effect = NewGO<prefab::CEffect>(0);
-		effect->Play(L"effect/fire3.efk");
 		effect->SetPosition(m_trackingPlayer->m_position + m_trackingPlayer->m_moveDir * m_trackingPlayer->m_fSpeed * 20 + m_trackingPlayer->m_upDir * -200);
+		effect->Play(L"effect/Explosion.efk");
 		effect->SetScale({ 50.0f,50.0f,50.0f });
+		m_trackingPlayer->m_hp -= 40.0f;
 		m_trackingPlayer->m_trackingMissileNum--;
+
+		m_explosionSound = NewGO<prefab::CSoundSource>(0);
+		
+		std::random_device seed_gen;
+		std::mt19937_64 rnd(seed_gen());
+		
+		switch (rnd() % 2)
+		{
+		case 0:
+			m_explosionSound->Init(L"sound/Boom0.wav");
+			break;
+		case 1:
+			m_explosionSound->Init(L"sound/Boom1.wav");
+			break;
+		}
+
+		m_explosionSound->Play(false);
 		DeleteGO(this);
 	}
 

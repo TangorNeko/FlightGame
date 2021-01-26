@@ -1,18 +1,16 @@
 #pragma once
-
-class Ring;
-class Player;
 class GameScene;
 
-class RingGenerator : public IGameObject
+class GameOver : public IGameObject
 {
 public:
 	void OnDestroy();
 	bool Start();
 	void Update();
 
-	Ring* m_ring = nullptr;
-	Player* m_player = nullptr;
+	prefab::CSpriteRender* m_spriteRender = nullptr;
 	GameScene* m_gameScene = nullptr;
+
+	int m_timeCount = 0;
 };
 

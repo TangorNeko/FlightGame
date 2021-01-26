@@ -1,5 +1,7 @@
 #pragma once
 class IEnemy;
+class SmokeGenerator;
+class GameScene;
 
 class Player : public IGameObject
 {
@@ -22,12 +24,27 @@ public:
 
 	prefab::CSpriteRender* m_sightSpriteRender = nullptr;
 	prefab::CSpriteRender* m_lockonSpriteRender = nullptr;
+	prefab::CSpriteRender* m_controlSpriteRender = nullptr;
+	prefab::CSpriteRender* m_HPSpriteBackRender = nullptr;
+	prefab::CSpriteRender* m_HPSpriteFrontRender = nullptr;
+	prefab::CSpriteRender* m_FuelSpriteBackRender = nullptr;
+	prefab::CSpriteRender* m_FuelSpriteFrontRender = nullptr;
+	prefab::CSpriteRender* m_speedSpriteBackRender = nullptr;
+	prefab::CSpriteRender* m_speedSpriteFrontRender = nullptr;
+	std::wstring m_speedString;
+	prefab::CFontRender* m_speedFontRender = nullptr;
+	prefab::CSpriteRender* m_missionPanelRender = nullptr;
+
+	prefab::CSpriteRender* m_missileTrackingSpriteRender = nullptr;
 	IEnemy* m_lockingEnemy = nullptr;
-	float m_maxLockonDistance = 25000.0f;
+	IEnemy* m_oldLockingEnemy = nullptr;
+	SmokeGenerator* m_smokeGenerator = nullptr;
+	float m_maxLockonDistance = 40000.0f;
 	int m_shotcooldown = 0;
 	prefab::CEffect* m_frictionEffect = nullptr;
 	prefab::CEffect* m_sbEffectRight = nullptr,*m_sbEffectLeft = nullptr;
 	prefab::CEffect* m_jetEffectRight = nullptr, * m_jetEffectLeft = nullptr;
+	GameScene* m_gameScene = nullptr;
 	bool m_isBoosting = false;
 	bool m_isTurning = false;
 	float m_fSpeedBeforeTurn = 0;
@@ -36,9 +53,22 @@ public:
 	int m_trackingMissileNum = 0;
 
 	CShaderResourceView m_specSRV;
-	int m_hp = 10000;
-	float m_fuel = 5000;
-	int m_score = 0;
+	int m_hp = 500;
+	int m_oldHp = 10000;
+	float m_fuel = 1000;
 	prefab::CFontRender* m_fontRender = nullptr;
+
+	//音
+	prefab::CSoundSource* m_missileShotSound = nullptr;
+	prefab::CSoundSource* m_lockonSound = nullptr;
+	prefab::CSoundSource* m_engineSound = nullptr;
+	prefab::CSoundSource* m_missileEngageSound = nullptr;
+	bool m_missileEngageSoundFlag = false;
+
+	//ミッション用
+	int m_shootMissileNum = 0;
+	int m_damageCount = 0;
+	int m_highSpeedCount = 0;
+	int m_lowSpeedCount = 0;
 };
 

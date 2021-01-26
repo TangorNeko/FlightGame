@@ -3,6 +3,7 @@
 #include "GameScene.h"
 #include "TitlePlayer.h"
 #include "SpaceDock.h"
+#include "SceneChange.h"
 #include "tkEngine/light/tkDirectionLight.h"
 
 void TitleScene::OnDestroy()
@@ -11,6 +12,7 @@ void TitleScene::OnDestroy()
 	DeleteGO(spacedock);
 	DeleteGO(player);
 	DeleteGOs("DirectionLight");
+	DeleteGO(m_titleBGM);
 }
 
 bool TitleScene::Start()
@@ -51,30 +53,49 @@ bool TitleScene::Start()
 
 	spacedock = NewGO<SpaceDock>(0,"spacedock");
 
-
-
 	MainCamera().SetPosition({ 0.0f,100.0f,-200.0f });
 	MainCamera().SetTarget(player->m_position);
 	MainCamera().SetNear(10.0f);
 	MainCamera().SetFar(1500000.0f);
+
+	m_titleBGM = NewGO<prefab::CSoundSource>(0, "bgm");
+	m_titleBGM->Init(L"sound/Science_Mystery.wav");
+	m_titleBGM->SetVolume(0.25f);
+	//m_titleBGM->Play(true);
 	return true;
 }
 
 void TitleScene::Update()
-{
-	if (Pad(0).IsTrigger(enButtonA) || player->m_position.z > 35500.0f)
+{	
+
+	if (Pad(0).IsTrigger(enButtonSelect) || player->m_position.z > 35500.0f)
 	{
 		NewGO<GameScene>(0, "gamescene");
 		DeleteGO(this);
 	}
 
+	if (player->m_position.z > 34000.0f && m_sceneChangeFlag == false)
+	{
+		SceneChange* scenechange = NewGO<SceneChange>(0);
+		scenechange->SceneChangeColor = { 0.9f,1.0f,1.0f };
+
+		prefab::CSoundSource* teleportSound = NewGO<prefab::CSoundSource>(0);
+		teleportSound->Init(L"sound/Teleport.wav");
+		teleportSound->SetVolume(1.5f);
+		teleportSound->Play(false);
+
+		m_sceneChangeFlag = true;
+	}
+
 	space->SetPosition(player->m_position);
 
-	CVector3 testcampos = player->m_position;
-	testcampos.y += 50.0f;
-	testcampos.z -= 300.0f;
-	MainCamera().SetPosition(testcampos);
-	MainCamera().SetTarget(player->m_position);
+	CVector3 titlecampos = player->m_position;
+	titlecampos.y += 50.0f;
+	titlecampos.z -= 300.0f;
+	CVector3 titletargetpos = player->m_position;
+	titletargetpos.y += 50.0f;
+	MainCamera().SetPosition(titlecampos);
+	MainCamera().SetTarget(titletargetpos);
 	MainCamera().SetUp(CVector3::Up);
 
 	MainCamera().Update();

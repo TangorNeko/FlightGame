@@ -13,10 +13,20 @@ public:
 
 	Blackhole* blackhole = nullptr;
 	Player* player = nullptr;
-	EnemyGenerator* enemygenerator = nullptr;
 	Mission* m_mission = nullptr;
 
-	bool m_isOnMission;
+	bool m_isPlayerDead = false;
+	bool m_isGameEnd = false;
+	bool m_isOnMission = false;
+	bool m_isBlackholePhase = false;
 	int m_gameTimer = 0;
+
+	prefab::CFontRender* m_fontRender = nullptr;
+
+	prefab::CSoundSource* m_gameBGM = nullptr;
+
+	prefab::CSpriteRender* m_warningSpriteUp = nullptr;
+	prefab::CSpriteRender* m_warningSpriteDown = nullptr;
+	int m_warningCount = 0;
 };
 
